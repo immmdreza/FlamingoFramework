@@ -9,6 +9,6 @@ _⚠ Please consider this as a beta version yet!_
 ## How to use
 There are some example projects that may help you for now.
 
-[FlamingoProduction](FlamingoProdunction)
+[FlamingoProduction](https://github.com/immmdreza/FlamingoFramework/tree/master/FlamingoProduction)
 
-[Examples](Examples)
+[Examples](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples)
