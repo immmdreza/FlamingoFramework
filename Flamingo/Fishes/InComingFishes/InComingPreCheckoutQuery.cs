@@ -9,7 +9,7 @@ namespace Flamingo.Fishes.InComingFishes
     /// <summary>
     /// InComing handler for PreCheckoutQueries
     /// </summary>
-    public class InComingPreCheckoutQuery : InComingFish<PreCheckoutQuery>
+    public abstract class InComingPreCheckoutQuery : InComingFish<PreCheckoutQuery>
     {
         /// <summary>
         /// InComing handler for PreCheckoutQueries
@@ -25,6 +25,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public PreCheckoutQueryCondiment RealCdmt => Cdmt as PreCheckoutQueryCondiment;
+        public PreCheckoutQueryCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is PreCheckoutQueryCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }

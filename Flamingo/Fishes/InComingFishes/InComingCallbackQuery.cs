@@ -30,7 +30,18 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public CallbackQueryCondiment RealCdmt => Cdmt as CallbackQueryCondiment;
+        public CallbackQueryCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is CallbackQueryCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
 
         #region Helpers
 

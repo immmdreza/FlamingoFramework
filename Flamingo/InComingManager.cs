@@ -1,4 +1,5 @@
 ﻿using Flamingo.Fishes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot.Types;
@@ -11,6 +12,30 @@ namespace Flamingo
     /// </summary>
     public class InComingManager
     {
+        /// <summary>
+        /// Get a list of added InComing handlers based on update type
+        /// </summary>
+        /// <typeparam name="T">Update type</typeparam>
+        /// <returns>A Dictionary of inComing handlers and thier group</returns>
+        public Dictionary<IFish<T>, int> GetInComingList<T>()
+        {
+            var type = typeof(T);
+            dynamic result;
+
+            if (type == typeof(Message)) result = InComingMessages;
+            else if (type == typeof(CallbackQuery)) result = InComingCallbackQueries;
+            else if (type == typeof(InlineQuery)) result = InComingInlineQueries;
+            else if (type == typeof(ChosenInlineResult)) result = InComingInlineResultChosen;
+            else if (type == typeof(ChatMemberUpdated)) result = InComingChatMembers;
+            else if (type == typeof(Poll)) result = InComingPoll;
+            else if (type == typeof(PollAnswer)) result = InComingPollAnswer;
+            else if (type == typeof(ShippingQuery)) result = InComingShippingQuery;
+            else if (type == typeof(PreCheckoutQuery)) result = InComingPreCheckoutQuery;
+            else result = null;
+
+            return result as Dictionary<IFish<T>, int>;
+        }
+
         #region Messages
         /// <summary>
         /// Order inComing by handling group

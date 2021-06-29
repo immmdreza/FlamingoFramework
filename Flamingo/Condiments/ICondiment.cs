@@ -2,6 +2,7 @@
 using Flamingo.Helpers;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace Flamingo.Condiments
@@ -21,6 +22,11 @@ namespace Flamingo.Condiments
         /// The engaged instance of FlamingoCore
         /// </summary>
         public FlamingoCore Flamingo { get; }
+
+        /// <summary>
+        /// The engaged instance of ITelegramBotClient
+        /// </summary>
+        public ITelegramBotClient Bot => Flamingo.BotClient;
 
         /// <summary>
         /// The main string query that update may carry

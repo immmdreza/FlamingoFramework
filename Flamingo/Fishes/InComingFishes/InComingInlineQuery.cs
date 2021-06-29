@@ -24,6 +24,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public InlineQueryCondiment RealCdmt => Cdmt as InlineQueryCondiment;
+        public InlineQueryCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is InlineQueryCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }

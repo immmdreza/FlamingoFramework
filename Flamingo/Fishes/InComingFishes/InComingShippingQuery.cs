@@ -9,7 +9,7 @@ namespace Flamingo.Fishes.InComingFishes
     /// <summary>
     /// InComing handler for ShippingQueries
     /// </summary>
-    public class InComingShippingQuery : InComingFish<ShippingQuery>
+    public abstract class InComingShippingQuery : InComingFish<ShippingQuery>
     {
         /// <summary>
         /// InComing handler for ShippingQueries
@@ -25,6 +25,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public ShippingQueryCondiment RealCdmt => Cdmt as ShippingQueryCondiment;
+        public ShippingQueryCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is ShippingQueryCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }

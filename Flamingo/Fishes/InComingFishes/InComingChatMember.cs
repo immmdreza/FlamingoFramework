@@ -24,6 +24,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public ChatMemberCondiment RealCdmt => Cdmt as ChatMemberCondiment;
+        public ChatMemberCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is ChatMemberCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }

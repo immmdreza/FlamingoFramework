@@ -3,11 +3,26 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>immmdreza</Authors>
+    <Description>A Telegram bot framework to make bots as easy as possible</Description>
+    <RepositoryUrl>https://github.com/immmdreza/FlamingoFramework</RepositoryUrl>
+    <PackageTags>Telegram bot telegram-bot framework csharp dotnet</PackageTags>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
+    <Version>1.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Telegram.Bot" Version="16.0.0" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="0.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Filters\ChosenInlineResultFilters\" />
+    <Folder Include="Filters\PreCheckoutQueryFilters\" />
+    <Folder Include="Filters\ShippingQueryFilters\" />
+    <Folder Include="Filters\PollAnswerFilters\" />
+    <Folder Include="Filters\PollFilters\" />
   </ItemGroup>
 
 </Project>

@@ -33,7 +33,18 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public MessageCondiment RealCdmt => Cdmt as MessageCondiment;
+        public MessageCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is MessageCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
 
         #region Helpers
 

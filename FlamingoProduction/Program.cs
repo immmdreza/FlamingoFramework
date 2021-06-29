@@ -4,6 +4,7 @@ using Flamingo.Attributes.Filters.Async.Messages;
 using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Condiments;
 using Flamingo.Condiments.Extensions;
+using Flamingo.Condiments.HotCondiments;
 using Flamingo.Filters;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
@@ -65,7 +66,7 @@ namespace FlamingoProduction
 
             Console.WriteLine(flamingo.BotInfo.FirstName);
 
-            await flamingo.ReceiveAsync(err);
+            await flamingo.Fly(errorHandler: ImError);
 
             // - Time to Fly!
             //      Call this method to start listening for updates!
@@ -73,12 +74,6 @@ namespace FlamingoProduction
             //                               ^
             //                               |_ Error handler method!
         }   //                                                      |
-
-        private static Task err(ITelegramBotClient arg1, Exception arg2, CancellationToken arg3)
-        {
-            throw new NotImplementedException();
-        }
-
         // ________________________________________________________<|
         // v
         // Setup your erorr handler.

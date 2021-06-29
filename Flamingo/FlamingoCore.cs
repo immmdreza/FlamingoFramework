@@ -411,6 +411,56 @@ namespace Flamingo
         }
 
         /// <summary>
+        /// Wanna go even deeper? This is used when you have your own update receiver
+        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
+        /// of your choise that is customized the way you like for every single update.
+        /// </summary>
+        /// <remarks>
+        /// This is usefull when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also controll their life cycle.
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condiment"></param>
+        public async Task ProcessInComings<T>(
+            ICondiment<T> condiment)
+        {
+            await foreach (var handler in PassedHandlersAsync(condiment))
+            {
+                if (!await handler.GetEaten(condiment))
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Wanna go even deeper? This is used when you have your own update receiver
+        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
+        /// of your choise that is customized the way you like for every single update.
+        /// </summary>
+        /// <remarks>
+        /// This is usefull when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also controll their life cycle.
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condiment"></param>
+        /// <returns>Get an async Enumerable of InComing handlers that passed filters</returns>
+        public async IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment)
+        {
+            var _inComingMessages = _inComingManager.GetInComingList<T>();
+
+            if (_inComingMessages == null) yield break;
+
+            foreach (var inComing in _inComingMessages)
+            {
+                if (await inComing.Key.ShouldEatAsync(condiment))
+                {
+                    yield return inComing.Key;
+                }
+            }
+        }
+
+        /// <summary>
         /// Call this to cancell everything that exists
         /// </summary>
         public void TriggerCancell()
@@ -627,7 +677,10 @@ namespace Flamingo
                             }
                             catch(Exception e) 
                             {
-                                await errorHandler(this, e);
+                                if (errorHandler != null)
+                                {
+                                    await errorHandler(this, e);
+                                }
                             }
                         }, _cancellationTokenSource.Token);
 

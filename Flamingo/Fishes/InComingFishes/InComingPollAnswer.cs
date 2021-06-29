@@ -9,7 +9,7 @@ namespace Flamingo.Fishes.InComingFishes
     /// <summary>
     /// InComing handler for PollAnswers
     /// </summary>
-    public class InComingPollAnswer : InComingFish<PollAnswer>
+    public abstract class InComingPollAnswer : InComingFish<PollAnswer>
     {
         /// <summary>
         /// InComing handler for PollAnswers
@@ -25,6 +25,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public PollAnswerCondiment RealCdmt => Cdmt as PollAnswerCondiment;
+        public PollAnswerCondiment RealCdmt
+        {
+            get
+            {
+                if (Cdmt is PollAnswerCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }

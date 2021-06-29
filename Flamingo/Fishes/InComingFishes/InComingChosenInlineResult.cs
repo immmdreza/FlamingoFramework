@@ -9,7 +9,7 @@ namespace Flamingo.Fishes.InComingFishes
     /// <summary>
     /// InComing handler for ChosenInlineResult update
     /// </summary>
-    public class InComingChosenInlineResult : InComingFish<ChosenInlineResult>
+    public abstract class InComingChosenInlineResult : InComingFish<ChosenInlineResult>
     {
         /// <summary>
         /// InComing handler for ChosenInlineResult update
@@ -25,6 +25,17 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Complete version of Cdmt based on incoming update
         /// </summary>
-        public ChosenInlineResultCondiment RealCdmt => Cdmt as ChosenInlineResultCondiment;
+        public ChosenInlineResultCondiment RealCdmt
+        {
+            get
+            {
+                if(Cdmt is ChosenInlineResultCondiment cdmt)
+                {
+                    return cdmt;
+                }
+
+                return null;
+            }
+        }
     }
 }
