@@ -29,7 +29,7 @@ namespace FlamingoProduction
             var flamingo = await new FlamingoCore()
                 // - You can change callback data splitter char if you want (Optional)
                 //      This is used when making args
-                .InitBot("1820608649:AAF_rimZO_y_RlYnTX2WnifXldL1GiIcxt4", callbackDataSpliter: '_');
+                .InitBot("API_TOKEN_HERE", callbackDataSpliter: '_');
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -119,9 +119,9 @@ namespace FlamingoProduction
         private static async Task<bool> MySimpleCallback(ICondiment<Message> cdmt)
         {
             // Create In-line (With callback query in easiest way possible)
-            var btns = new InlineBuilder(
-                new[] { ("Happy 10", "data_happy_10") },
-                new[] { ("Sad 10", "data_sad_10") });
+            var btns = new InlineBuilder(1,
+                ("Happy 10", "data_happy_10") ,
+                ("Sad 10", "data_sad_10") );
 
             string mode = "sad";
 
@@ -138,7 +138,7 @@ namespace FlamingoProduction
 
             // - Use Extensions ...
             await cdmt.ReplyText($"Your {mode} is sad at level 0",
-                replyMarkup: new InlineKeyboardMarkup(btns.Use()));
+                replyMarkup: new InlineKeyboardMarkup(btns.Markup()));
             return true;
         }
 
@@ -180,7 +180,7 @@ namespace FlamingoProduction
                 });
 
                 await cdmt.EditText($"Your mode is {mode} at level {level}", 
-                    replyMarkup: new InlineKeyboardMarkup(btns.Use()));
+                    replyMarkup: new InlineKeyboardMarkup(btns.Markup()));
                 await cdmt.Answer();
             }
 

@@ -18,7 +18,7 @@ namespace DeepInsideFlamingo
         {
             flamingo = new FlamingoCore();
 
-            await flamingo.InitBot("1820608649:AAHmoEXFkw6ogl9hF2LGDL9IYjBEKhicjpA");
+            await flamingo.InitBot("API_TOKEN_HERE");
 
             flamingo.AddInComing(new GetDbResult());
 

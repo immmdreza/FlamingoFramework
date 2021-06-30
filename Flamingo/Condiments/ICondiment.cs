@@ -1,8 +1,10 @@
 ﻿using Flamingo.Condiments.Extensions;
+using Flamingo.Fishes;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -84,6 +86,19 @@ namespace Flamingo.Condiments
 
 
         #region Extensions
+
+
+        /// <summary>
+        /// Shorthand method for <see cref="FlamingoCore.WaitForInComing{U}(IFisherAwaits{U})"/>
+        /// </summary>
+        /// <typeparam name="U">Update type</typeparam>
+        /// <param name="fisherAwaits">Await-able incoming handler</param>
+        /// <returns>return <see cref="AwaitableResult{U}"/></returns>
+        public async Task<AwaitableResult<U>> WaitFor<U>(IFisherAwaits<U> fisherAwaits)
+        {
+            return await Flamingo.WaitForInComing(fisherAwaits);
+        }
+
 
         /// <summary>
         /// Tries to get a argument

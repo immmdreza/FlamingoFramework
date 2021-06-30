@@ -4,32 +4,53 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Flamingo.Helpers
 {
-    public class InlineBuilder
+    public class InlineBuilder: IGridBuilder<(string, string)>
     {
-        private List<List<(string, string)>> _inline;
+        public List<List<(string, string)>> Struncture => _struncture;
 
-        public InlineBuilder(params (string, string)[][] rows)
+        private List<List<(string, string)>> _struncture;
+
+        /// <summary>
+        /// Create a set of reply keyboards as quick as possible
+        /// </summary>
+        public InlineBuilder()
         {
-            _inline = new List<List<(string, string)>>();
-
-            if (rows != null)
-            {
-                foreach (var row in rows)
-                {
-                    _inline.Add(new List<(string, string)>());
-                    foreach (var btn in row)
-                    {
-                        _inline[^1].Add(btn);
-                    }
-                }
-            }
+            _struncture = new List<List<(string, string)>>();
         }
 
-        public List<List<InlineKeyboardButton>> Use()
+        /// <summary>
+        /// Create a set of reply keyboards as quick as possible
+        /// </summary>
+        /// <param name="rows">Keyboard (text, data)s for a set of keyboards</param>
+        /// <param name="columnCount">Column count to divide keyboards to</param>
+        public InlineBuilder(int columnCount = 2, params (string, string)[] rows)
+        {
+            _struncture = (this as IGridBuilder<(string, string)>).innerColumnBuilder(columnCount, rows);
+        }
+
+        /// <summary>
+        /// Create a set of reply keyboards as quick as possible
+        /// </summary>
+        /// <param name="rows">Keyboard (text, data)s for a set of keyboards (divided to 2 columns)</param>
+        public InlineBuilder(params (string, string)[] rows)
+        {
+            _struncture = (this as IGridBuilder<(string, string)>).innerColumnBuilder(2, rows);
+        }
+
+        /// <summary>
+        /// Create a set of reply keyboards as quick as possible
+        /// </summary>
+        /// <param name="rows">Keyboard (text, data) for a single button</param>
+        public InlineBuilder((string, string) rows)
+        {
+            _struncture = (this as IGridBuilder<(string, string)>).innerColumnBuilder(1, rows);
+        }
+
+        public List<List<InlineKeyboardButton>> Markup()
         {
             var result = new List<List<InlineKeyboardButton>>();
 
-            foreach (var row in _inline)
+            foreach (var row in Struncture)
             {
                 result.Add(new List<InlineKeyboardButton>());
                 foreach (var btn in row)
@@ -42,10 +63,13 @@ namespace Flamingo.Helpers
             return result;
         }
 
-        public InlineBuilder Build(Action<List<List<(string, string)>>> action)
+        /// <summary>
+        /// Build list dynamically
+        /// </summary>
+        /// <param name="action"></param>
+        public void Build(Action<List<List<(string, string)>>> action)
         {
-            _inline.Build(action);
-            return this;
+            _struncture = _struncture.Build(action);
         }
     }
 }

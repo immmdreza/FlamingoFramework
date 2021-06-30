@@ -18,7 +18,7 @@ namespace SimpleFlamingo
         {
             var flamingo = new FlamingoCore();
 
-            await flamingo.InitBot("1820608649:AAF_rimZO_y_RlYnTX2WnifXldL1GiIcxt4");
+            await flamingo.InitBot("API_TOKEN_HERE");
 
             var chatFilter = new ChatTypeFilter<Message>(FlamingoChatType.Private);
 
