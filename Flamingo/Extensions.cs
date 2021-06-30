@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Flamingo
+﻿namespace Flamingo
 {
     /// <summary>
     /// A Set of useful extensions

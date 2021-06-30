@@ -1,5 +1,4 @@
 ﻿using Flamingo.Fishes;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot.Types;
@@ -12,6 +11,11 @@ namespace Flamingo
     /// </summary>
     public class InComingManager
     {
+        /// <summary>
+        /// Check how many incoming handlers you may added
+        /// </summary>
+        public int addCount = 0;
+
         /// <summary>
         /// Get a list of added InComing handlers based on update type
         /// </summary>

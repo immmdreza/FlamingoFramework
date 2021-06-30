@@ -6,6 +6,7 @@ using Flamingo.Condiments.HotCondiments;
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
+using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using System;
@@ -46,6 +47,8 @@ namespace Flamingo
 
         private readonly InComingManager _inComingManager;
 
+        private readonly InComingManager _inComingAwaitableManager;
+
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
@@ -74,6 +77,7 @@ namespace Flamingo
             _baseUrl = baseUrl;
             _httpClient ??= new HttpClient();
             _inComingManager = new InComingManager();
+            _inComingAwaitableManager = new InComingManager();
             _cancellationTokenSource = new CancellationTokenSource();
             _allowedUpdates = new List<UpdateType>();
         }
@@ -234,8 +238,8 @@ namespace Flamingo
         /// <see cref="InComingMessage"/> for every type of message including edited or channel posts
         /// </item>
         /// <item><see cref="InComingCallbackQuery"/> for callback queries.</item>
-        /// <item><see cref="InComingInlineQuery"/> for inline queries</item>
-        /// <item><see cref="InComingChosenInlineResult"/></item> for chosen inline results
+        /// <item><see cref="InComingInlineQuery"/> for in-line queries</item>
+        /// <item><see cref="InComingChosenInlineResult"/></item> for chosen in-line results
         /// <item><see cref="InComingChatMember"/></item> for both ChatMember and MyChatMember
         /// <item><see cref="InComingPoll"/></item> for updates about polls
         /// <item><see cref="InComingPollAnswer"/></item> for updates about polls answer
@@ -352,6 +356,24 @@ namespace Flamingo
             }
         }
 
+
+        /// <summary>
+        /// (Not recommended) If you are not using <see cref="WaitForInComing{T}(IFisherAwaits{T})"/> 
+        /// and you want to create await-able handlers manually, then use this to add an await-able
+        /// incoming handler to the Flamingo! and then call <see cref="IFisherAwaits{T}.Wait(Dictionary{IFish{T}, int})"/>
+        /// to wait for respond.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fish"></param>
+        /// <returns></returns>
+        public Dictionary<IFish<T>, int> AddInComingAwaitable<T>(IFisherAwaits<T> fish)
+        {
+            var manger = _inComingAwaitableManager.GetInComingList<T>();
+
+            manger.Add(fish as IFish<T>, 0);
+            return manger;
+        }
+
         private void AddInComingMessage(
             IFish<Message> fish, bool isEdited = false,
             bool isChannelPost = false, int group = 0)
@@ -394,11 +416,43 @@ namespace Flamingo
 
         private List<UpdateType> _allowedUpdates;
 
+        /// <summary>
+        /// Processes await-able incomings here 
+        /// </summary>
+        /// <remarks>If this method return true, 
+        /// then normal handlers should not be processed for this update.</remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condiment"></param>
+        /// <returns></returns>
+        public async Task<bool> ProcessAwaitables<T>(ICondiment<T> condiment)
+        {
+            var manager = _inComingAwaitableManager.GetInComingList<T>();
+
+            if(manager.Any())
+            {
+                foreach (var inComing in manager)
+                {
+                    if (await inComing.Key.ShouldEatAsync(condiment))
+                    {
+                        var fisher = inComing.Key as IFisherAwaits<T>;
+                        fisher.SetCdmt(condiment);
+                        (inComing.Key as IFisherAwaits<T>).AwaitFor();
+                        manager.Remove(inComing.Key);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private async Task ProcessInComings<T>(
             Dictionary<IFish<T>, int> _inComingMessages,
             ICondiment<T> condiment)
         {
-            foreach (var inComing in _inComingMessages)
+            if (await ProcessAwaitables(condiment)) return;
+
+            foreach (var inComing in _inComingMessages.Where(x=> !(x.Key is IFisherAwaits<T>)))
             {
                 if (await inComing.Key.ShouldEatAsync(condiment))
                 {
@@ -413,17 +467,19 @@ namespace Flamingo
         /// <summary>
         /// Wanna go even deeper? This is used when you have your own update receiver
         /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
-        /// of your choise that is customized the way you like for every single update.
+        /// of your choice that is customized the way you like for every single update.
         /// </summary>
         /// <remarks>
-        /// This is usefull when you need to pass your own properties to the update Condiment
-        /// and use them when handling update. and you can also controll their life cycle.
+        /// This is useful when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also control their life cycle.
         /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="condiment"></param>
         public async Task ProcessInComings<T>(
             ICondiment<T> condiment)
         {
+            if (await ProcessAwaitables(condiment)) return;
+
             await foreach (var handler in PassedHandlersAsync(condiment))
             {
                 if (!await handler.GetEaten(condiment))
@@ -436,11 +492,11 @@ namespace Flamingo
         /// <summary>
         /// Wanna go even deeper? This is used when you have your own update receiver
         /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
-        /// of your choise that is customized the way you like for every single update.
+        /// of your choice that is customized the way you like for every single update.
         /// </summary>
         /// <remarks>
-        /// This is usefull when you need to pass your own properties to the update Condiment
-        /// and use them when handling update. and you can also controll their life cycle.
+        /// This is useful when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also control their life cycle.
         /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="condiment"></param>
@@ -461,7 +517,7 @@ namespace Flamingo
         }
 
         /// <summary>
-        /// Call this to cancell everything that exists
+        /// Call this to cancel everything that exists
         /// </summary>
         public void TriggerCancell()
         {
@@ -734,5 +790,25 @@ namespace Flamingo
         {
             await UpdateRedirector(update);
         }
+
+
+
+        #region Helpers
+
+        /// <summary>
+        /// Waits for a await-able incoming handler ( <see cref="SimpleAwaitableInComing{T}"/> )
+        /// </summary>
+        /// <remarks>Use await! this method will ( and Should ) block and wait for a respond to come.
+        /// Or timeout!</remarks>
+        /// <typeparam name="T">Type of update</typeparam>
+        /// <param name="inComingfish">InComing handler of type <see cref="IFisherAwaits{T}"/></param>
+        /// <returns>Returns <see cref="AwaitableResult{T}"/></returns>
+        public async Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish)
+        {
+            var manager = AddInComingAwaitable(inComingfish);
+            return await inComingfish.Wait(manager);
+        }
+
+        #endregion
     }
 }

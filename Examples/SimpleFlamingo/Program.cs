@@ -1,6 +1,6 @@
 ﻿using Flamingo;
 using Flamingo.Condiments;
-using Flamingo.Condiments.HotCondiments;
+using Flamingo.Condiments.Extensions;
 using Flamingo.Filters.Ninja;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using System;
@@ -28,7 +28,7 @@ namespace SimpleFlamingo
 
         private static async Task<bool> Callback(ICondiment<Message> cdmt)
         {
-            await cdmt.Flamingo.BotClient.SendTextMessageAsync(cdmt.Chat.Id, "Tested");
+            await cdmt.ReplyText("Tested");
             return true;
         }
     }

@@ -15,7 +15,7 @@ namespace Flamingo.Filters.SharedFilters
         public PrivateFilter()
             : base(x =>
             {
-                if (x.Chat != null) return false;
+                if (x.Chat == null) return false;
 
                 return x.Chat.Type == ChatType.Private;
             })

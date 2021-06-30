@@ -1,22 +1,20 @@
 ﻿using Flamingo;
 using Flamingo.Attributes;
-using Flamingo.Attributes.Filters.Async.Messages;
 using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Condiments;
 using Flamingo.Condiments.Extensions;
-using Flamingo.Condiments.HotCondiments;
 using Flamingo.Filters;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
+using Flamingo.Fishes;
+using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;
 using FlamingoProduction.MyInComings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -26,13 +24,13 @@ namespace FlamingoProduction
     {
         static async Task Main()
         {
-            // Create "FlamingoCore" instance and user "InitBot" to intialize you bot!
+            // Create "FlamingoCore" instance and user "InitBot" to initialize you bot!
             var flamingo = await new FlamingoCore()
-                // - You can change callback data spliter char if you want (Optional)
+                // - You can change callback data splitter char if you want (Optional)
                 //      This is used when making args
-                .InitBot("YOUR_BOT_TOKEN_HERE", callbackDataSpliter: '_');
+                .InitBot("1820608649:AAF_rimZO_y_RlYnTX2WnifXldL1GiIcxt4", callbackDataSpliter: '_');
 
-            // - Use classes you created as handlers by Inheritancing from "InComingBase" classes!
+            // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
             flamingo.AddInComing(new InComingStartMessage());
 
@@ -66,29 +64,50 @@ namespace FlamingoProduction
 
             Console.WriteLine(flamingo.BotInfo.FirstName);
 
-            await flamingo.Fly(errorHandler: ImError);
-
             // - Time to Fly!
             //      Call this method to start listening for updates!
+            await flamingo.Fly(errorHandler: ImError);
+
             await flamingo.Fly(errorHandler: ImError);
             //                               ^
             //                               |_ Error handler method!
         }   //                                                      |
         // ________________________________________________________<|
         // v
-        // Setup your erorr handler.
+        // Setup your error handler.
         private static Task ImError(FlamingoCore _, Exception e)
         {
             Console.WriteLine(e);
             return Task.CompletedTask;
         }
 
-        [InComingMessage(IsEdited = true)]
-        [RegexFilter("^/attr")]
-        [AdminsOnlyFilter] // This is an async filter!
+        [InComingMessage]
+        [RegexFilter("^/setname")]
         public static async Task<bool> MyAttributedCallback(ICondiment<Message> cdmt)
         {
-            await cdmt.ReplyText("Yes Attr!");
+            await cdmt.ReplyText("OK what is your name?");
+
+            var handle = new AwaitInComingText(cdmt.SenderId);
+            var result = await cdmt.Flamingo.WaitForInComing(handle);
+
+            if(result == null)
+            {
+                if(result.Status == AwaitableStatus.TimedOut)
+                {
+                    await cdmt.ReplyText("Request has been timed out!");
+                }
+                
+                return false;
+            }
+
+            if (result.Cdmt.StringQuery == "/cancel")
+            {
+                handle.Cancell();
+                await cdmt.ReplyText("Canceled");
+            }
+
+            await cdmt.ReplyText($"OK your name is {result.Cdmt.StringQuery}");
+
             return true;
         }
 
@@ -97,7 +116,7 @@ namespace FlamingoProduction
         //      And it has a lot of useful extensions
         private static async Task<bool> MySimpleCallback(ICondiment<Message> cdmt)
         {
-            // Create Inline (With callback query in easiest way possible)
+            // Create In-line (With callback query in easiest way possible)
             var btns = new InlineBuilder(
                 new[] { ("Happy 10", "data_happy_10") },
                 new[] { ("Sad 10", "data_sad_10") });
@@ -105,7 +124,7 @@ namespace FlamingoProduction
             string mode = "sad";
 
             // If you have regex filter, you can use "cdmt.MatchCollection"
-            // I perfer to use "GetRequireArgs" Extension method instead 
+            // I prefer to use "GetRequireArgs" Extension method instead 
             if (cdmt.MatchCollection[0].Groups.Count > 1)
             {
                 if(new[] {"sad", "happy"}.Any(
@@ -125,7 +144,7 @@ namespace FlamingoProduction
         private static async Task<bool> HandleCallbackQuery(ICondiment<CallbackQuery> cdmt)
         {
             // - Feel extensions ...
-            // - Query data args has been maden using "callbackDataSpliter" at "InitBot"
+            // - Query data args has been made using "callbackDataSpliter" at "InitBot"
             if (cdmt.GetRequireArgs(
                 out string mode, out int level, 1))
             /*  ^                ^              ^
@@ -137,7 +156,7 @@ namespace FlamingoProduction
             {
                 var btns = new InlineBuilder();
 
-                // Build your btns dynamically with "Build" Extension Method (for lists)
+                // Build your buttons dynamically with "Build" Extension Method (for lists)
                 btns.Build(rows =>
                 {
                     // "Build" is an extension method for all Lists
