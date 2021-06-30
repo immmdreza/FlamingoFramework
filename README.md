@@ -9,7 +9,9 @@ _⚠ Please consider this as a beta version yet!_
 ## How to use
 Below there are some sources you can use
 
-### Get Started
+<details>
+  <summary> ### Get Started </summary>
+
 _After installing Flamingo through Nuget package manager, you can use it like example below:_
 
 #### 1- First of all Create an instance of `FlamingoCore` class into your program main method
@@ -137,6 +139,7 @@ namespace SimpleFlamingo
 #### You can write all of these using Attributes even more quicker
 - [See SimpleFlamingo](https://github.com/immmdreza/FlamingoFramework/blob/master/Examples/SimpleFlamingo/Program.cs)
 
+</details>
 ## Await-able InComing Handlers
 Wait for user respond!
 [Read Wiki](https://github.com/immmdreza/FlamingoFramework/wiki/Await-able-InComing-handlers)
