@@ -12,6 +12,44 @@ namespace Flamingo.Helpers
     public static class Extensions
     {
         /// <summary>
+        /// Convert <see cref="FlamingoChatType"/> to <see cref="ChatType"/> 
+        /// </summary>
+        /// <param name="flamingoChatType">Flamingo chat type</param>
+        /// <returns></returns>
+        public static ChatType ToChatType(
+            this FlamingoChatType flamingoChatType)
+        {
+            return flamingoChatType switch
+            {
+                FlamingoChatType.Private => ChatType.Private,
+                FlamingoChatType.Sender => ChatType.Sender,
+                FlamingoChatType.Group => ChatType.Group,
+                FlamingoChatType.SuperGroup => ChatType.Supergroup,
+                FlamingoChatType.Channel => ChatType.Channel,
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        /// <summary>
+        /// Convert <see cref="ChatType"/> to <see cref="FlamingoChatType"/> 
+        /// </summary>
+        /// <param name="chatType">Chat type</param>
+        /// <returns></returns>
+        public static FlamingoChatType ToFlamingoChatType(
+            this ChatType chatType)
+        {
+            return chatType switch
+            {
+                ChatType.Private => FlamingoChatType.Private,
+                ChatType.Sender => FlamingoChatType.Sender,
+                ChatType.Group => FlamingoChatType.Group,
+                ChatType.Supergroup => FlamingoChatType.SuperGroup,
+                ChatType.Channel => FlamingoChatType.Channel,
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        /// <summary>
         /// Convert <see cref="ChatMemberFlamingoStatus"/> to <see cref="ChatMemberStatus"/> 
         /// </summary>
         /// <param name="flamingoStatus">Flamingo chat member status</param>

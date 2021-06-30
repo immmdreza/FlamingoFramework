@@ -28,7 +28,7 @@ namespace Flamingo.Fishes.Awaitables
                 {
                     _status = AwaitableStatus.Cancelled;
                     mamager.Remove(this);
-                    return null;
+                    return new AwaitableResult<T>(Status, null);
                 }
 
                 if (_timerCancell.IsCancellationRequested)
@@ -43,7 +43,7 @@ namespace Flamingo.Fishes.Awaitables
 
             mamager.Remove(this);
             _status = AwaitableStatus.TimedOut;
-            return null;
+            return new AwaitableResult<T>(Status, null);
         }
 
         private void Triggered()

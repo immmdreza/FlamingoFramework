@@ -10,6 +10,7 @@ using Flamingo.Fishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;
+using Flamingo.Helpers.Types.Enums;
 using FlamingoProduction.MyInComings;
 using System;
 using System.Collections.Generic;
@@ -83,6 +84,7 @@ namespace FlamingoProduction
 
         [InComingMessage]
         [RegexFilter("^/setname")]
+        [ChatTypeFilter(FlamingoChatType.Private)]
         public static async Task<bool> MyAttributedCallback(ICondiment<Message> cdmt)
         {
             await cdmt.ReplyText("OK what is your name?");
@@ -90,7 +92,7 @@ namespace FlamingoProduction
             var handle = new AwaitInComingText(cdmt.SenderId);
             var result = await cdmt.Flamingo.WaitForInComing(handle);
 
-            if(result == null)
+            if(result.Cdmt == null)
             {
                 if(result.Status == AwaitableStatus.TimedOut)
                 {

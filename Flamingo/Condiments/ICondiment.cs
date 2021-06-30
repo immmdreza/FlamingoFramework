@@ -1,5 +1,6 @@
 ﻿using Flamingo.Condiments.Extensions;
 using Flamingo.Helpers;
+using Flamingo.Helpers.Types.Enums;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Telegram.Bot;
@@ -36,13 +37,28 @@ namespace Flamingo.Condiments
         public string StringQuery { get; }
 
         /// <summary>
-        /// Query argumans fetched by splitting string query ( mostly with ' ' )
+        /// Query arguments fetched by splitting string query ( mostly with ' ' )
         /// </summary>
         /// <remarks>Consider using <c>GetRequireArgs</c> to check args safe and quickly</remarks>
         public IEnumerable<string> QueryArgs { get; }
 
 
         #region Extra attr
+
+        /// <summary>
+        /// Flamingo
+        /// </summary>
+        public FlamingoChatType FlamingoChatType
+        {
+            get
+            {
+                if (Chat != null)
+                    return Chat.Type.ToFlamingoChatType();
+                else
+                    return FlamingoChatType.NoChat;
+            }
+            
+        }
 
         /// <summary>
         /// Userid for sender of update
@@ -60,7 +76,7 @@ namespace Flamingo.Condiments
         public Chat Chat { get; }
 
         /// <summary>
-        /// You have this if you have a RegexFilter and atleast a matched result
+        /// You have this if you have a RegexFilter and at least a matched result
         /// </summary>
         public MatchCollection MatchCollection { get; set; }
 
@@ -70,7 +86,7 @@ namespace Flamingo.Condiments
         #region Extensions
 
         /// <summary>
-        /// Tries to get a arguman
+        /// Tries to get a argument
         /// </summary>
         /// <typeparam name="Type">Type of arg</typeparam>
         /// <param name="index">It's index</param>

@@ -7,9 +7,9 @@
     <Description>A Telegram bot framework to make bots as easy as possible</Description>
     <RepositoryUrl>https://github.com/immmdreza/FlamingoFramework</RepositoryUrl>
     <PackageTags>Telegram bot telegram-bot framework csharp dotnet</PackageTags>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.1</Version>
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
