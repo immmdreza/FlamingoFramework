@@ -145,6 +145,19 @@ Wait for user respond!
 ## More to go
 There are some example projects that may help you for now.
 
+Full explanation example with a lot of comments: 
 [FlamingoProduction](https://github.com/immmdreza/FlamingoFramework/tree/master/FlamingoProduction)
 
-[Examples](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples)
+## Examples:
+
+### Simple Flamingo
+An example of how to create a simple Flamingo app + simple Attribute handlers usage:
+- [SimpleFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/SimpleFlamingo)
+ 
+### FillForm Flamingo
+See how to use await-able incoming handlers to wait for user answers and fill a sign up form
+- [FillFormFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/FillFormFlamingo)
+
+### DeepInside Flamingo
+In this example we show you how to go deep inside flamingo and create your own handlers and condiments so you can use any custom properties in your handler and even control lifecycle of bd objects ant etc.
+- [DeepInsideFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/DeepInsideFlamingo)
