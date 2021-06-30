@@ -1,9 +1,12 @@
 ﻿using Flamingo;
+using Flamingo.Attributes;
+using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Condiments;
 using Flamingo.Condiments.Extensions;
-using Flamingo.Filters.Ninja;
+using Flamingo.Filters.MessageFilters;
+using Flamingo.Filters.SharedFilters;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
-using System;
+using Flamingo.Helpers.Types.Enums;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -15,20 +18,35 @@ namespace SimpleFlamingo
         {
             var flamingo = new FlamingoCore();
 
-            await flamingo.InitBot("1820608649:AAHmoEXFkw6ogl9hF2LGDL9IYjBEKhicjpA");
+            await flamingo.InitBot("1820608649:AAF_rimZO_y_RlYnTX2WnifXldL1GiIcxt4");
 
-            var mySimpleHandler = new SimpleInComing<Message>(Callback, MessageNinja.Regex("^/test$"));
+            var chatFilter = new ChatTypeFilter<Message>(FlamingoChatType.Private);
 
-            flamingo.AddInComing(mySimpleHandler);
+            var commandFilter = new CommandFilter("start");
 
-            Console.WriteLine($"Listening to {flamingo.BotInfo.FirstName}");
+            var startHandler = new SimpleInComing<Message>(CallbackFunc,
+                chatFilter & commandFilter);
+
+            flamingo.AddInComing(startHandler);
 
             await flamingo.Fly();
         }
 
-        private static async Task<bool> Callback(ICondiment<Message> cdmt)
+        [InComingMessage]
+        [CommandFilter("about")]
+        [ChatTypeFilter(FlamingoChatType.Private)]
+        public static async Task<bool> AboutCallbackFunc(ICondiment<Message> cdmt)
         {
-            await cdmt.ReplyText("Tested");
+            await cdmt.ReplyText(
+                "I'm Flamingo bot!\n" + 
+                "written using [FlamingoFramework!](https://github.com/immmdreza/FlamingoFramework)",
+                Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            return true;
+        }
+
+        private static async Task<bool> CallbackFunc(ICondiment<Message> cdmt)
+        {
+            await cdmt.ReplyText("Just started!");
             return true;
         }
     }
