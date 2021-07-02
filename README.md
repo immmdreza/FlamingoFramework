@@ -1,6 +1,15 @@
 # Flamingo 🦩
 Flamingo is a framework to build Telegram bots using .NET as easy as possible!
 
+## To what purpose?
+As you can see, Flamingo uses [TelegramBot]() and [TelegramBot.PollingExtension]() (Just in case) as dependencies. so by installing this package you have pure packages for telegram bots in .NET. 
+
+But this one serves as a Top layer created over **TelegramBot** library to help you setup your bot in most easiest and also pro way! The very first and important purpose of Flamingo is simplicity, save time and cleaner code when writing telegram bots with .NET
+
+**Remember that flamingo is just getting started**. it can grows with your support and help (help and support to an almost a large community)
+
+In my turn, i tried to put all my experience here but there are a lot to go. lock into examples and you can examine the advantages of Flamingo ( at least in basic ) 
+
 ## Install
 **Flamingo** is available in [Nuget](https://www.nuget.org/packages/Flamingo)
 
