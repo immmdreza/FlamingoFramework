@@ -1,6 +1,6 @@
-﻿using Flamingo.Fishes;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Payments;
 
@@ -20,8 +20,8 @@ namespace Flamingo
         /// Get a list of added InComing handlers based on update type
         /// </summary>
         /// <typeparam name="T">Update type</typeparam>
-        /// <returns>A Dictionary of inComing handlers and thier group</returns>
-        public Dictionary<IFish<T>, int> GetInComingList<T>()
+        /// <returns>A Dictionary of inComing handlers and their group</returns>
+        public SortedSet<GroupedInComing<T>> GetInComingList<T>()
         {
             var type = typeof(T);
             dynamic result;
@@ -37,57 +37,160 @@ namespace Flamingo
             else if (type == typeof(PreCheckoutQuery)) result = InComingPreCheckoutQuery;
             else result = null;
 
-            return result as Dictionary<IFish<T>, int>;
+            return result as SortedSet<GroupedInComing<T>>;
         }
 
-        #region Messages
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingMessages()
+        private IComparer<GroupedInComing<T>> CreateComparer<T>()
         {
-            _inComingMessages = _inComingMessages.OrderBy(x => x.Value)
-                .ToDictionary(x=> x.Key, x=> x.Value);
+            return Comparer<GroupedInComing<T>>.Create(
+                (a, b) => a.CompareTo(b));
         }
 
-        private Dictionary<IFish<Message>, int> _inComingMessages;
+        private readonly object _lock = new object();
+
+
+        #region For Thread Safety
 
         /// <summary>
-        /// Dictionary of updates and handling group 
+        /// Add to handlers thread-safe
         /// </summary>
-        public Dictionary<IFish<Message>, int> InComingMessages
+        public void SafeAdd<T>(GroupedInComing<T> item)
         {
-            get
+            // Request the lock, and block until it is obtained.
+            var groupedIns = GetInComingList<T>();
+
+            lock(groupedIns)
             {
-                if (_inComingMessages == null)
-                    _inComingMessages = new Dictionary<IFish<Message>, int>();
-
-                return _inComingMessages;
+                // When the lock is obtained, add an element.
+                var b = groupedIns.Add(item);
+                Console.WriteLine($" add {item.GetHashCode()} to {groupedIns.GetHashCode()}: {b}");
             }
         }
-        #endregion
 
-        #region CallbackQuery
         /// <summary>
-        /// Order inComing by handling group
+        /// Add quickly
         /// </summary>
-        public void OrderInComingCallbackQuery()
+        public bool TryAdd<T>(
+            SortedSet<GroupedInComing<T>> groupedIns,
+            GroupedInComing<T> item)
         {
-            _inComingCallbackQueries = _inComingCallbackQueries.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
+            // Request the lock.
+            if (Monitor.TryEnter(groupedIns))
+            {
+                try
+                {
+                    groupedIns.Add(item);
+                }
+                finally
+                {
+                    // Ensure that the lock is released.
+                    Monitor.Exit(groupedIns);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        private Dictionary<IFish<CallbackQuery>, int> _inComingCallbackQueries;
+        /// <summary>
+        /// Wait to add
+        /// </summary>
+        public bool TryAdd<T>(
+            SortedSet<GroupedInComing<T>> groupedIns,
+            GroupedInComing<T> item, int waitTime)
+        {
+            // Request the lock.
+            if (Monitor.TryEnter(groupedIns, waitTime))
+            {
+                try
+                {
+                    groupedIns.Add(item);
+                }
+                finally
+                {
+                    // Ensure that the lock is released.
+                    Monitor.Exit(groupedIns);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Add to handlers thread-safe
+        /// </summary>
+        public void SafeRemove<T>(
+            SortedSet<GroupedInComing<T>> groupedIns,
+            GroupedInComing<T> item)
+        {
+            // Request the lock, and block until it is obtained.
+            Monitor.Enter(groupedIns);
+            try
+            {
+                groupedIns.Remove(item);
+            }
+            finally
+            {
+                // Ensure that the lock is released.
+                Monitor.Exit(groupedIns);
+            }
+        }
+
+        /// <summary>
+        /// Get all elements safety
+        /// </summary>
+        public IEnumerable<GroupedInComing<T>> AllElementsSafe<T>(
+            SortedSet<GroupedInComing<T>> groupedIns)
+        {
+            lock(groupedIns)
+            {
+                foreach (var elem in groupedIns)
+                {
+                    yield return elem;
+                }
+            }
+        }
+
+        #endregion
+
+
+        #region Messages
+        private SortedSet<GroupedInComing<Message>> _inComingMessages;
+
+            /// <summary>
+            /// Dictionary of updates and handling group 
+            /// </summary>
+            public SortedSet<GroupedInComing<Message>> InComingMessages
+            {
+                get
+                {
+                    if (_inComingMessages == null)
+                        _inComingMessages = new SortedSet<GroupedInComing<Message>>(
+                            CreateComparer<Message>());
+
+                    return _inComingMessages;
+                }
+            }
+            #endregion
+
+        #region CallbackQuery
+        private SortedSet<GroupedInComing<CallbackQuery>> _inComingCallbackQueries;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<CallbackQuery>, int> InComingCallbackQueries
+        public SortedSet<GroupedInComing<CallbackQuery>> InComingCallbackQueries
         {
             get
             {
                 if (_inComingCallbackQueries == null)
-                    _inComingCallbackQueries = new Dictionary<IFish<CallbackQuery>, int>();
+                    _inComingCallbackQueries = new SortedSet<GroupedInComing<CallbackQuery>>(
+                        CreateComparer<CallbackQuery>());
 
                 return _inComingCallbackQueries;
             }
@@ -95,26 +198,18 @@ namespace Flamingo
         #endregion
 
         #region InlineQuery
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingInlineQuery()
-        {
-            _inComingInlineQueries = _inComingInlineQueries.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        private Dictionary<IFish<InlineQuery>, int> _inComingInlineQueries;
+        private SortedSet<GroupedInComing<InlineQuery>> _inComingInlineQueries;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<InlineQuery>, int> InComingInlineQueries
+        public SortedSet<GroupedInComing<InlineQuery>> InComingInlineQueries
         {
             get
             {
                 if (_inComingInlineQueries == null)
-                    _inComingInlineQueries = new Dictionary<IFish<InlineQuery>, int>();
+                    _inComingInlineQueries = new SortedSet<GroupedInComing<InlineQuery>>(
+                        CreateComparer<InlineQuery>());
 
                 return _inComingInlineQueries;
             }
@@ -122,26 +217,18 @@ namespace Flamingo
         #endregion
 
         #region ChatMembers
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingChatMember()
-        {
-            _inComingChatMembers = _inComingChatMembers.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        private Dictionary<IFish<ChatMemberUpdated>, int> _inComingChatMembers;
+        private SortedSet<GroupedInComing<ChatMemberUpdated>> _inComingChatMembers;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<ChatMemberUpdated>, int> InComingChatMembers
+        public SortedSet<GroupedInComing<ChatMemberUpdated>> InComingChatMembers
         {
             get
             {
                 if (_inComingChatMembers == null)
-                    _inComingChatMembers = new Dictionary<IFish<ChatMemberUpdated>, int>();
+                    _inComingChatMembers = new SortedSet<GroupedInComing<ChatMemberUpdated>>(
+                        CreateComparer<ChatMemberUpdated>());
 
                 return _inComingChatMembers;
             }
@@ -149,53 +236,40 @@ namespace Flamingo
         #endregion
 
         #region ChosenInlineResult
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingInlineResultChosen()
-        {
-            _inComingInlineResultChosen = _inComingInlineResultChosen.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
 
-        private Dictionary<IFish<ChosenInlineResult>, int> _inComingInlineResultChosen;
+        private SortedSet<GroupedInComing<ChosenInlineResult>> _inComingInlineResultChosen;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<ChosenInlineResult>, int> InComingInlineResultChosen
+        public SortedSet<GroupedInComing<ChosenInlineResult>> InComingInlineResultChosen
         {
             get
             {
                 if (_inComingInlineResultChosen == null)
-                    _inComingInlineResultChosen = new Dictionary<IFish<ChosenInlineResult>, int>();
+                    _inComingInlineResultChosen = new SortedSet<GroupedInComing<ChosenInlineResult>>(
+                        CreateComparer<ChosenInlineResult>());
 
                 return _inComingInlineResultChosen;
             }
         }
+
         #endregion
 
         #region Poll
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingPoll()
-        {
-            _inComingPoll = _inComingPoll.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
 
-        private Dictionary<IFish<Poll>, int> _inComingPoll;
+        private SortedSet<GroupedInComing<Poll>> _inComingPoll;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<Poll>, int> InComingPoll
+        public SortedSet<GroupedInComing<Poll>> InComingPoll
         {
             get
             {
                 if (_inComingPoll == null)
-                    _inComingPoll = new Dictionary<IFish<Poll>, int>();
+                    _inComingPoll = new SortedSet<GroupedInComing<Poll>>(
+                        CreateComparer<Poll>());
 
                 return _inComingPoll;
             }
@@ -203,26 +277,19 @@ namespace Flamingo
         #endregion
 
         #region PollAnswer
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingPollAnswer()
-        {
-            _inComingPollAnswer = _inComingPollAnswer.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
 
-        private Dictionary<IFish<PollAnswer>, int> _inComingPollAnswer;
+        private SortedSet<GroupedInComing<PollAnswer>> _inComingPollAnswer;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<PollAnswer>, int> InComingPollAnswer
+        public SortedSet<GroupedInComing<PollAnswer>> InComingPollAnswer
         {
             get
             {
                 if (_inComingPollAnswer == null)
-                    _inComingPollAnswer = new Dictionary<IFish<PollAnswer>, int>();
+                    _inComingPollAnswer = new SortedSet<GroupedInComing<PollAnswer>>(
+                        CreateComparer<PollAnswer>());
 
                 return _inComingPollAnswer;
             }
@@ -230,26 +297,19 @@ namespace Flamingo
         #endregion
 
         #region ShippingQuery
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingShippingQuery()
-        {
-            _inComingShippingQuery = _inComingShippingQuery.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
 
-        private Dictionary<IFish<ShippingQuery>, int> _inComingShippingQuery;
+        private SortedSet<GroupedInComing<ShippingQuery>> _inComingShippingQuery;
 
         /// <summary>
         /// Dictionary of updates and handling group 
         /// </summary>
-        public Dictionary<IFish<ShippingQuery>, int> InComingShippingQuery
+        public SortedSet<GroupedInComing<ShippingQuery>> InComingShippingQuery
         {
             get
             {
                 if (_inComingShippingQuery == null)
-                    _inComingShippingQuery = new Dictionary<IFish<ShippingQuery>, int>();
+                    _inComingShippingQuery = new SortedSet<GroupedInComing<ShippingQuery>>(
+                        CreateComparer<ShippingQuery>());
 
                 return _inComingShippingQuery;
             }
@@ -257,30 +317,24 @@ namespace Flamingo
         #endregion
 
         #region PreCheckoutQuery
-        /// <summary>
-        /// Order inComing by handling group
-        /// </summary>
-        public void OrderInComingPreCheckoutQuery()
-        {
-            _inComingPreCheckoutQuery = _inComingPreCheckoutQuery.OrderBy(x => x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
 
-        private Dictionary<IFish<PreCheckoutQuery>, int> _inComingPreCheckoutQuery;
+        private SortedSet<GroupedInComing<PreCheckoutQuery>> _inComingPreCheckoutQuery;
 
         /// <summary>
         /// Dictionary of updates and handling group
         /// </summary>
-        public Dictionary<IFish<PreCheckoutQuery>, int> InComingPreCheckoutQuery
+        public SortedSet<GroupedInComing<PreCheckoutQuery>> InComingPreCheckoutQuery
         {
             get
             {
                 if (_inComingPreCheckoutQuery == null)
-                    _inComingPreCheckoutQuery = new Dictionary<IFish<PreCheckoutQuery>, int>();
+                    _inComingPreCheckoutQuery = new SortedSet<GroupedInComing<PreCheckoutQuery>>(
+                        CreateComparer<PreCheckoutQuery>());
 
                 return _inComingPreCheckoutQuery;
             }
         }
+
         #endregion
     }
 }

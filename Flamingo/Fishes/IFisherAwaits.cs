@@ -1,6 +1,5 @@
 ﻿using Flamingo.Condiments;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,6 +40,6 @@ namespace Flamingo.Fishes
         /// Wait for the target fish to get in trap!
         /// </summary>
         /// <returns></returns>
-        public Task<AwaitableResult<T>> Wait(Dictionary<IFish<T>, int> pairs);
+        public Task<AwaitableResult<T>> Wait(FlamingoCore flamingo, GroupedInComing<T> groupedIn);
     }
 }

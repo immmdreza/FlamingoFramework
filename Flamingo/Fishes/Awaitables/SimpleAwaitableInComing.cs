@@ -2,7 +2,6 @@
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,20 +19,21 @@ namespace Flamingo.Fishes.Awaitables
         private CancellationTokenSource _timerCancell;
 
         /// <inheritdoc/>
-        public async Task<AwaitableResult<T>> Wait(Dictionary<IFish<T>, int> mamager)
+        public async Task<AwaitableResult<T>> Wait(
+            FlamingoCore flamingo, GroupedInComing<T> groupedIn)
         {
             for (int i = 0; i < TimeOut * 2; i++)
             {
                 if (CancellationToken.IsCancellationRequested)
                 {
                     _status = AwaitableStatus.Cancelled;
-                    mamager.Remove(this);
+                     flamingo.RemoveAwaitable(groupedIn);
                     return new AwaitableResult<T>(Status, null);
                 }
 
                 if (_timerCancell.IsCancellationRequested)
                 {
-                    mamager.Remove(this);
+                    flamingo.RemoveAwaitable(groupedIn);
                     if (_status == AwaitableStatus.Succeeded) 
                         return new AwaitableResult<T>(Status, _cdmt);
                 }
@@ -41,7 +41,7 @@ namespace Flamingo.Fishes.Awaitables
                 await Task.Delay(500);
             }
 
-            mamager.Remove(this);
+            flamingo.RemoveAwaitable(groupedIn);
             _status = AwaitableStatus.TimedOut;
             return new AwaitableResult<T>(Status, null);
         }

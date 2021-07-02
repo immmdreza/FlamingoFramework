@@ -147,9 +147,9 @@ namespace Flamingo
                         if (target is InComingMessageAttribute inComingMessage)
                         {
                             InAttributedProcess<Message>(m, allAttr,
-                                inComingMessage.Group,
-                                inComingMessage.IsEdited,
-                                inComingMessage.IsChannelPost);
+                                group: inComingMessage.Group,
+                                isEdited: inComingMessage.IsEdited,
+                                isChannelPost: inComingMessage.IsChannelPost);
                             foundCount++;
                             added = true;
                             break;
@@ -157,7 +157,7 @@ namespace Flamingo
                         else if (target is InComingCallbackQueryAttribute inComingCallback)
                         {
                             InAttributedProcess<CallbackQuery>(m, allAttr,
-                                inComingCallback.Group);
+                                group: inComingCallback.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -165,7 +165,7 @@ namespace Flamingo
                         else if (target is InComingChatMemberAttribute inComingChatMember)
                         {
                             InAttributedProcess<ChatMemberUpdated>(m, allAttr,
-                                inComingChatMember.Group,
+                                group: inComingChatMember.Group,
                                 isMine: inComingChatMember.IsMine);
                             foundCount++;
                             added = true;
@@ -174,7 +174,7 @@ namespace Flamingo
                         else if (target is InComingInlineQueryAttribute inComingInline)
                         {
                             InAttributedProcess<InlineQuery>(m, allAttr,
-                                inComingInline.Group);
+                                group: inComingInline.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -182,7 +182,7 @@ namespace Flamingo
                         else if (target is InComingChosenInlineResultAttribute inComing)
                         {
                             InAttributedProcess<ChosenInlineResult>(m, allAttr,
-                                inComing.Group);
+                                group: inComing.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -190,7 +190,7 @@ namespace Flamingo
                         else if (target is InComingPollAttribute inComingPoll)
                         {
                             InAttributedProcess<Poll>(m, allAttr,
-                                inComingPoll.Group);
+                                group: inComingPoll.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -198,7 +198,7 @@ namespace Flamingo
                         else if (target is InComingPollAnswerAttribute inComingPollAnswer)
                         {
                             InAttributedProcess<PollAnswer>(m, allAttr,
-                                inComingPollAnswer.Group);
+                                group: inComingPollAnswer.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -206,7 +206,7 @@ namespace Flamingo
                         else if (target is InComingShippingQueryAttribute inComingShippingQuery)
                         {
                             InAttributedProcess<ShippingQuery>(m, allAttr,
-                                inComingShippingQuery.Group);
+                                group: inComingShippingQuery.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -214,7 +214,7 @@ namespace Flamingo
                         else if (target is InComingPreCheckoutQueryAttribute inComingPreCheckoutQuery)
                         {
                             InAttributedProcess<PreCheckoutQuery>(m, allAttr,
-                                inComingPreCheckoutQuery.Group);
+                                group: inComingPreCheckoutQuery.Group);
                             foundCount++;
                             added = true;
                             break;
@@ -261,12 +261,10 @@ namespace Flamingo
             if(typeof(T) == typeof(Message))
             {
                 AddInComingMessage(fish as IFish<Message>, isEdited, isChannelPost, group);
-                _inComingManager.OrderInComingMessages();
             }
             else if(typeof(T) == typeof(CallbackQuery))
             {
-                _inComingManager.InComingCallbackQueries.Add(fish as IFish<CallbackQuery>, group);
-                _inComingManager.OrderInComingCallbackQuery();
+                _inComingManager.SafeAdd(new GroupedInComing<CallbackQuery>(fish as IFish<CallbackQuery>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.CallbackQuery))
                 {
@@ -275,8 +273,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(InlineQuery))
             {
-                _inComingManager.InComingInlineQueries.Add(fish as IFish<InlineQuery>, group);
-                _inComingManager.OrderInComingInlineQuery();
+                _inComingManager.SafeAdd(new GroupedInComing<InlineQuery>(fish as IFish<InlineQuery>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.InlineQuery))
                 {
@@ -285,9 +282,8 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(ChosenInlineResult))
             {
-                _inComingManager.InComingInlineResultChosen.Add(
-                    fish as IFish<ChosenInlineResult>, group);
-                _inComingManager.OrderInComingInlineResultChosen();
+                _inComingManager.SafeAdd(new GroupedInComing<ChosenInlineResult>(
+                    fish as IFish<ChosenInlineResult>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.ChosenInlineResult))
                 {
@@ -296,8 +292,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(Poll))
             {
-                _inComingManager.InComingPoll.Add(fish as IFish<Poll>, group);
-                _inComingManager.OrderInComingPoll();
+                _inComingManager.SafeAdd(new GroupedInComing<Poll>(fish as IFish<Poll>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.Poll))
                 {
@@ -306,8 +301,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(PollAnswer))
             {
-                _inComingManager.InComingPollAnswer.Add(fish as IFish<PollAnswer>, group);
-                _inComingManager.OrderInComingPollAnswer();
+                _inComingManager.SafeAdd(new GroupedInComing<PollAnswer>(fish as IFish<PollAnswer>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.PollAnswer))
                 {
@@ -316,8 +310,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(ShippingQuery))
             {
-                _inComingManager.InComingShippingQuery.Add(fish as IFish<ShippingQuery>, group);
-                _inComingManager.OrderInComingShippingQuery();
+                _inComingManager.SafeAdd(new GroupedInComing<ShippingQuery>(fish as IFish<ShippingQuery>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.ShippingQuery))
                 {
@@ -326,8 +319,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(PreCheckoutQuery))
             {
-                _inComingManager.InComingPreCheckoutQuery.Add(fish as IFish<PreCheckoutQuery>, group);
-                _inComingManager.OrderInComingInlineResultChosen();
+                _inComingManager.SafeAdd(new GroupedInComing<PreCheckoutQuery>(fish as IFish<PreCheckoutQuery>, group));
 
                 if (!_allowedUpdates.Contains(UpdateType.PreCheckoutQuery))
                 {
@@ -336,8 +328,7 @@ namespace Flamingo
             }
             else if (typeof(T) == typeof(ChatMemberUpdated))
             {
-                _inComingManager.InComingChatMembers.Add(fish as IFish<ChatMemberUpdated>, group);
-                _inComingManager.OrderInComingChatMember();
+                _inComingManager.SafeAdd(new GroupedInComing<ChatMemberUpdated>(fish as IFish<ChatMemberUpdated>, group));
 
                 if (isMine)
                 {
@@ -365,20 +356,20 @@ namespace Flamingo
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="fish"></param>
+        /// <param name="group">Grouping rank if required</param>
         /// <returns></returns>
-        public Dictionary<IFish<T>, int> AddInComingAwaitable<T>(IFisherAwaits<T> fish)
+        public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish, int group = 0)
         {
-            var manger = _inComingAwaitableManager.GetInComingList<T>();
-
-            manger.Add(fish as IFish<T>, 0);
-            return manger;
+            var toAdd = new GroupedInComing<T>(fish as IFish<T>, group);
+            _inComingAwaitableManager.SafeAdd(toAdd);
+            return toAdd;
         }
 
         private void AddInComingMessage(
             IFish<Message> fish, bool isEdited = false,
             bool isChannelPost = false, int group = 0)
         {
-            _inComingManager.InComingMessages.Add(fish, group);
+            _inComingManager.SafeAdd(new GroupedInComing<Message>(fish, group));
 
             if(isChannelPost)
             {
@@ -430,14 +421,13 @@ namespace Flamingo
 
             if(manager.Any())
             {
-                foreach (var inComing in manager)
+                foreach (var inComing in _inComingAwaitableManager.AllElementsSafe(manager))
                 {
-                    if (await inComing.Key.ShouldEatAsync(condiment))
+                    if (await inComing.InComingFish.ShouldEatAsync(condiment))
                     {
-                        var fisher = inComing.Key as IFisherAwaits<T>;
+                        var fisher = inComing.InComingFish as IFisherAwaits<T>;
                         fisher.SetCdmt(condiment);
-                        (inComing.Key as IFisherAwaits<T>).AwaitFor();
-                        manager.Remove(inComing.Key);
+                        (inComing.InComingFish as IFisherAwaits<T>).AwaitFor();
                         return true;
                     }
                 }
@@ -447,16 +437,17 @@ namespace Flamingo
         }
 
         private async Task ProcessInComings<T>(
-            Dictionary<IFish<T>, int> _inComingMessages,
+            SortedSet<GroupedInComing<T>> _inComingMessages,
             ICondiment<T> condiment)
         {
             if (await ProcessAwaitables(condiment)) return;
 
-            foreach (var inComing in _inComingMessages.Where(x=> !(x.Key is IFisherAwaits<T>)))
+            foreach (var inComing in _inComingManager.AllElementsSafe(_inComingMessages)
+                .Where(x=> !(x.InComingFish is IFisherAwaits<T>)))
             {
-                if (await inComing.Key.ShouldEatAsync(condiment))
+                if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
-                    if (!await inComing.Key.GetEaten(condiment))
+                    if (!await inComing.InComingFish.GetEaten(condiment))
                     {
                         break;
                     }
@@ -507,11 +498,11 @@ namespace Flamingo
 
             if (_inComingMessages == null) yield break;
 
-            foreach (var inComing in _inComingMessages)
+            foreach (var inComing in _inComingManager.AllElementsSafe(_inComingMessages))
             {
-                if (await inComing.Key.ShouldEatAsync(condiment))
+                if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
-                    yield return inComing.Key;
+                    yield return inComing.InComingFish;
                 }
             }
         }
@@ -805,8 +796,18 @@ namespace Flamingo
         /// <returns>Returns <see cref="AwaitableResult{T}"/></returns>
         public async Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish)
         {
-            var manager = AddInComingAwaitable(inComingfish);
-            return await inComingfish.Wait(manager);
+            var added = AddInComingAwaitable(inComingfish);
+            return await inComingfish.Wait(this, added);
+        }
+
+        /// <summary>
+        /// Safely remove an await-able handler
+        /// </summary>
+        public void RemoveAwaitable<T>(GroupedInComing<T> groupedIn)
+        {
+            var manger = _inComingAwaitableManager.GetInComingList<T>();
+
+            _inComingAwaitableManager.SafeRemove(manger, groupedIn);
         }
 
         #endregion

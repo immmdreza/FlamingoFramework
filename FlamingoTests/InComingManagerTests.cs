@@ -1,10 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Flamingo;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Telegram.Bot.Types;
-using Flamingo.Fishes;
+using Flamingo.Fishes.InComingFishes.SimpleInComings;
+using System.Threading.Tasks;
 
 namespace Flamingo.Tests
 {
@@ -18,7 +16,7 @@ namespace Flamingo.Tests
         {
             Assert.IsInstanceOfType(
                 incomings.GetInComingList<Message>(),
-                typeof(Dictionary<IFish<Message>, int>));
+                typeof(SortedSet<GroupedInComing<Message>>));
         }
 
         [TestMethod]
@@ -26,7 +24,62 @@ namespace Flamingo.Tests
         {
             Assert.IsInstanceOfType(
                 incomings.GetInComingList<ChatMemberUpdated>(),
-                typeof(Dictionary<IFish<ChatMemberUpdated>, int>));
+                typeof(SortedSet<GroupedInComing<ChatMemberUpdated>>));
+        }
+
+        [TestMethod()]
+        public async Task GetInComingListTestAsync()
+        {
+
+        }
+
+        [TestMethod()]
+        public async Task SafeAddTestAsync()
+        {
+            var myHanlers = new GroupedInComing<Message>[]
+            {
+                new GroupedInComing<Message>(new SimpleInComing<Message>(null), 0),
+                new GroupedInComing<Message>(new SimpleInComing<Message>(null), 1),
+                new GroupedInComing<Message>(new SimpleInComing<Message>(null), 2),
+                new GroupedInComing<Message>(new SimpleInComing<Message>(null), 3),
+                new GroupedInComing<Message>(new SimpleInComing<Message>(null), 4),
+            };
+
+            var tasks = new List<Task>();
+
+            var bools = new List<bool>();
+
+            foreach (var item in myHanlers)
+            {
+                tasks.Add(
+                    Task.Run(
+                    () =>  incomings.SafeAdd(item)
+                    // () => incomings.InComingMessages.Add(item)
+               ));
+            }
+
+            
+            await Task.WhenAll(tasks);
+            Assert.AreEqual(incomings.InComingMessages.Count, 5);
+
+            foreach (var item in myHanlers)
+            {
+                tasks.Add(Task.Run(
+                    () => incomings.SafeRemove(
+                        incomings.InComingMessages, item)
+                    // () => incomings.InComingMessages.Add(item)
+               ));
+            }
+
+            await Task.WhenAll(tasks);
+
+            Assert.AreEqual(incomings.InComingMessages.Count, 0);
+        }
+
+        [TestMethod()]
+        public void SafeRemoveTest()
+        {
+            Assert.Fail();
         }
     }
 }

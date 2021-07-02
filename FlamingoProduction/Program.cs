@@ -29,7 +29,7 @@ namespace FlamingoProduction
             var flamingo = await new FlamingoCore()
                 // - You can change callback data splitter char if you want (Optional)
                 //      This is used when making args
-                .InitBot("API_TOKEN_HERE", callbackDataSpliter: '_');
+                .InitBot("1820608649:AAG981uKed7_ZE-VrN4MzIYnvPuI1KCz7N8", callbackDataSpliter: '_');
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -37,7 +37,7 @@ namespace FlamingoProduction
 
             // - Set if this handler is for edited messages by setting "isEdited: true"
             //      In "AddInComing" method!
-            flamingo.AddInComing(new InComingArgumans(), isEdited: true);
+            flamingo.AddInComing(new InComingArgumans(), isEdited: true, group: 2);
 
             // - use SimpleInComing<T> class to create a simple and quick handler
             //      With callback function (MySimpleCallback)
@@ -68,8 +68,6 @@ namespace FlamingoProduction
             // - Time to Fly!
             //      Call this method to start listening for updates!
             await flamingo.Fly(errorHandler: ImError);
-
-            await flamingo.Fly(errorHandler: ImError);
             //                               ^
             //                               |_ Error handler method!
         }   //                                                      |
@@ -82,7 +80,7 @@ namespace FlamingoProduction
             return Task.CompletedTask;
         }
 
-        [InComingMessage]
+        [InComingMessage(Group = 1)]
         [RegexFilter("^/setname")]
         [ChatTypeFilter(FlamingoChatType.Private)]
         public static async Task<bool> MyAttributedCallback(ICondiment<Message> cdmt)
