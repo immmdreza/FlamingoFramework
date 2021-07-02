@@ -9,7 +9,9 @@ _⚠ Please consider this as a beta version yet!_
 ## How to use
 Below there are some sources you can use
 
-### Get Started
+<details>
+  <summary> <b>Get Started</b> </summary>
+
 _After installing Flamingo through Nuget package manager, you can use it like example below:_
 
 #### 1- First of all Create an instance of `FlamingoCore` class into your program main method
@@ -137,6 +139,8 @@ namespace SimpleFlamingo
 #### You can write all of these using Attributes even more quicker
 - [See SimpleFlamingo](https://github.com/immmdreza/FlamingoFramework/blob/master/Examples/SimpleFlamingo/Program.cs)
 
+</details>
+
 ## Await-able InComing Handlers
 Wait for user respond!
 [Read Wiki](https://github.com/immmdreza/FlamingoFramework/wiki/Await-able-InComing-handlers)
@@ -145,6 +149,19 @@ Wait for user respond!
 ## More to go
 There are some example projects that may help you for now.
 
+Full explanation example with a lot of comments: 
 [FlamingoProduction](https://github.com/immmdreza/FlamingoFramework/tree/master/FlamingoProduction)
 
-[Examples](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples)
+## Examples:
+
+### Simple Flamingo
+An example of how to create a simple Flamingo app + simple Attribute handlers usage:
+- [SimpleFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/SimpleFlamingo)
+ 
+### FillForm Flamingo
+See how to use await-able incoming handlers to wait for user answers and fill a sign up form
+- [FillFormFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/FillFormFlamingo)
+
+### DeepInside Flamingo
+In this example we show you how to go deep inside flamingo and create your own handlers and condiments. so you can use any custom properties in your handlers and even control lifecycle of db objects and etc.
+- [DeepInsideFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/DeepInsideFlamingo)
