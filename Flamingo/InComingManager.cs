@@ -63,7 +63,6 @@ namespace Flamingo
             {
                 // When the lock is obtained, add an element.
                 var b = groupedIns.Add(item);
-                Console.WriteLine($" add {item.GetHashCode()} to {groupedIns.GetHashCode()}: {b}");
             }
         }
 

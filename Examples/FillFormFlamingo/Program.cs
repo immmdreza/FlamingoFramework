@@ -19,7 +19,7 @@ namespace FillFormFlamingo
         static async Task Main()
         {
             var flamingo = await new FlamingoCore()
-                .InitBot("API_TOKEN_HERE");
+                .InitBot("1820608649:AAG981uKed7_ZE-VrN4MzIYnvPuI1KCz7N8");
 
             await flamingo.Fly();
         }

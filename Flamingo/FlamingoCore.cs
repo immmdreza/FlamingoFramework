@@ -421,7 +421,7 @@ namespace Flamingo
 
             if(manager.Any())
             {
-                foreach (var inComing in _inComingAwaitableManager.AllElementsSafe(manager))
+                foreach (var inComing in manager)
                 {
                     if (await inComing.InComingFish.ShouldEatAsync(condiment))
                     {
@@ -442,7 +442,7 @@ namespace Flamingo
         {
             if (await ProcessAwaitables(condiment)) return;
 
-            foreach (var inComing in _inComingManager.AllElementsSafe(_inComingMessages)
+            foreach (var inComing in _inComingMessages
                 .Where(x=> !(x.InComingFish is IFisherAwaits<T>)))
             {
                 if (await inComing.InComingFish.ShouldEatAsync(condiment))
@@ -498,7 +498,8 @@ namespace Flamingo
 
             if (_inComingMessages == null) yield break;
 
-            foreach (var inComing in _inComingManager.AllElementsSafe(_inComingMessages))
+            foreach (var inComing in _inComingMessages
+                .Where(x => !(x.InComingFish is IFisherAwaits<T>)))
             {
                 if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
@@ -781,8 +782,6 @@ namespace Flamingo
         {
             await UpdateRedirector(update);
         }
-
-
 
         #region Helpers
 
