@@ -12,7 +12,7 @@ namespace FlamingoProduction.MyInComings
             : base(new RegexFilter("^/cmd"))
         { }
 
-        protected override async Task GetEatenWapper(Message inComing)
+        protected override async Task GetEatenWrapper(Message inComing)
         {
             // Check argumans in a text Query
             if(Cdmt.GetRequireArgs(out string arg1, out int arg2, out string arg3, 1, true))

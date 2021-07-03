@@ -6,13 +6,13 @@ using Telegram.Bot.Types;
 
 namespace FlamingoProduction.MyInComings
 {
-    class InComingStartMessage : InComingMessage
+    public class InComingStartMessage : InComingMessage
     {
         public InComingStartMessage() 
-            : base(new PrivateFilter<Message>() & new RegexFilter("^/start$"))
+            : base(new PrivateFilter<Message>() & new CommandFilter("start"))
         { }
 
-        protected override async Task GetEatenWapper(Message inComing)
+        protected override async Task GetEatenWrapper(Message inComing)
         {
             await ReplyText("Just Started!");
         }

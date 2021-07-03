@@ -45,8 +45,10 @@ namespace Flamingo.Fishes.InComingFishes
 
         #region Helpers
 
+        /// <inheritdoc/>
         protected Chat Chat => Cdmt.Chat;
 
+        /// <inheritdoc/>
         protected User Sender => Cdmt.Sender;
 
         protected async Task Answer(string text,
@@ -58,7 +60,7 @@ namespace Flamingo.Fishes.InComingFishes
             await Cdmt.Answer(text, showAlert, url, cacheTime, cancellationToken);
         }
 
-        protected async Task<Message> EditText(string text,
+        protected async Task<ICondiment<Message>> EditText(string text,
             ParseMode parseMode = ParseMode.Default,
             IEnumerable<MessageEntity> entities = null,
             bool disableWebPreview = true,
@@ -68,6 +70,28 @@ namespace Flamingo.Fishes.InComingFishes
             return await Cdmt.EditText(text,
                 parseMode, entities, disableWebPreview,
                 replyMarkup, cancellationToken);
+        }
+
+        /// <summary>
+        /// Extension method to delete the message which carries buttons
+        /// </summary>
+        protected async Task DeleteMessage(CancellationToken cancellationToken = default)
+        {
+            await Cdmt.Flamingo.BotClient.DeleteMessageAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.Message.MessageId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Extension method to edit inline keyboard of a message
+        /// </summary>
+        protected async Task<ICondiment<Message>> EditButtons(InlineKeyboardMarkup replyMarkup = default,
+            CancellationToken cancellationToken = default)
+        {
+            var message = await Cdmt.Flamingo.BotClient.EditMessageReplyMarkupAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.Message.MessageId,
+                replyMarkup, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
         }
 
         #endregion

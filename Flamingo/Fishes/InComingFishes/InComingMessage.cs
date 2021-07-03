@@ -48,27 +48,67 @@ namespace Flamingo.Fishes.InComingFishes
 
         #region Helpers
 
+        /// <inheritdoc/>
         protected Chat Chat => Cdmt.Chat;
 
+        /// <inheritdoc/>
         protected User Sender => Cdmt.Sender;
 
-        protected async Task<Message> RespondText(
-            string text,
+        /// <summary>
+        /// Extension method to edit the text of a message
+        /// </summary>
+        public async Task<ICondiment<Message>> EditText(string text,
             ParseMode parseMode = ParseMode.Default,
             IEnumerable<MessageEntity> entities = null,
             bool disableWebPreview = true,
-            bool disableNofication = true,
-            IReplyMarkup replyMarkup = default,
+            InlineKeyboardMarkup replyMarkup = default,
             CancellationToken cancellationToken = default)
         {
-            return await Cdmt.RespondText(text,
+            var message = await Cdmt.Flamingo.BotClient.EditMessageTextAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.MessageId, text,
                 parseMode, entities, disableWebPreview,
-                disableNofication,
                 replyMarkup, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
         }
 
-        protected async Task<Message> ReplyText(
-            string text,
+        /// <summary>
+        /// Extension method to edit inline keyboard of a message
+        /// </summary>
+        public async Task<ICondiment<Message>> EditButtons(InlineKeyboardMarkup replyMarkup = default,
+            CancellationToken cancellationToken = default)
+        {
+            var message = await Cdmt.Flamingo.BotClient.EditMessageReplyMarkupAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.MessageId,
+                replyMarkup, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
+        }
+
+        /// <summary>
+        /// Extension method to pin the message
+        /// </summary>
+        public async Task Pin(bool disableNotify = true,
+            CancellationToken cancellationToken = default)
+        {
+            await Cdmt.Flamingo.BotClient.PinChatMessageAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.MessageId,
+                disableNotify, cancellationToken);
+        }
+
+        /// <summary>
+        /// Extension method to delete the message
+        /// </summary>
+        public async Task Delete(CancellationToken cancellationToken = default)
+        {
+            await Cdmt.Flamingo.BotClient.DeleteMessageAsync(
+                Cdmt.Chat.Id, Cdmt.InComing.MessageId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Quickly respond to a message with a text message
+        /// </summary>
+        public async Task<ICondiment<Message>> RespondText(string text,
             ParseMode parseMode = ParseMode.Default,
             IEnumerable<MessageEntity> entities = null,
             bool disableWebPreview = true,
@@ -76,10 +116,47 @@ namespace Flamingo.Fishes.InComingFishes
             IReplyMarkup replyMarkup = default,
             CancellationToken cancellationToken = default)
         {
-            return await Cdmt.ReplyText(text,
+            var message = await Cdmt.Flamingo.BotClient.SendTextMessageAsync(
+                Cdmt.Chat.Id, text,
                 parseMode, entities, disableWebPreview,
-                disableNofication,
+                disableNofication, 0, true,
                 replyMarkup, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
+        }
+
+        /// <summary>
+        /// Quickly forward a message with a text message
+        /// </summary>
+        public async Task<ICondiment<Message>> Forward(Chat toChat,
+            bool disableNofication = true,
+            CancellationToken cancellationToken = default)
+        {
+            var message = await Cdmt.Flamingo.BotClient.ForwardMessageAsync(
+                toChat, Cdmt.Chat.Id, Cdmt.InComing.MessageId,
+                disableNofication, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
+        }
+
+        /// <summary>
+        /// Quickly reply to a message with a text message
+        /// </summary>
+        public async Task<ICondiment<Message>> ReplyText(string text,
+            ParseMode parseMode = ParseMode.Default,
+            IEnumerable<MessageEntity> entities = null,
+            bool disableWebPreview = true,
+            bool disableNofication = true,
+            IReplyMarkup replyMarkup = default,
+            CancellationToken cancellationToken = default)
+        {
+            var message = await Cdmt.Flamingo.BotClient.SendTextMessageAsync(
+                Cdmt.Chat.Id, text,
+                parseMode, entities, disableWebPreview,
+                disableNofication, Cdmt.InComing.MessageId, true,
+                replyMarkup, cancellationToken);
+
+            return new MessageCondiment(message, Cdmt.Flamingo);
         }
 
         #endregion

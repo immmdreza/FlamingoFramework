@@ -71,7 +71,7 @@ namespace Flamingo.Fishes.InComingFishes
         /// </summary>
         /// <param name="inComing"></param>
         /// <returns></returns>
-        protected virtual Task GetEatenWapper(T inComing)
+        protected virtual Task GetEatenWrapper(T inComing)
         {
             throw new NotImplementedException();
         }
@@ -80,7 +80,7 @@ namespace Flamingo.Fishes.InComingFishes
         {
             Cdmt = condiment;
 
-            await GetEatenWapper(condiment.InComing);
+            await GetEatenWrapper(condiment.InComing);
 
             return _result;
         }
