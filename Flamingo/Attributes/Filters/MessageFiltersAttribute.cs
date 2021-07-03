@@ -20,9 +20,7 @@ namespace Flamingo.Attributes.Filters
             Filter = filter;
         }
 
-        /// <summary>
-        /// The filter that this attribute carries
-        /// </summary>
+        /// <inheritdoc/>
         public FilterBase<ICondiment<Message>> Filter { get; }
     }
 }

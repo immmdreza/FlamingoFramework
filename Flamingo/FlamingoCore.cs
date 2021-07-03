@@ -80,6 +80,9 @@ namespace Flamingo
             _inComingAwaitableManager = new InComingManager();
             _cancellationTokenSource = new CancellationTokenSource();
             _allowedUpdates = new List<UpdateType>();
+
+            var found = AddAttributedInComings();
+            Console.WriteLine($"{found} Attributed inComing found!");
         }
 
         /// <summary>
@@ -132,7 +135,7 @@ namespace Flamingo
         /// Then adds them to the FlamingoCore using <see cref="AddInComing{T}(IFish{T}, int, bool, bool, bool)"/>
         /// </summary>
         /// <returns>Count of found incoming attributes</returns>
-        public int AddAttributedInComings()
+        private int AddAttributedInComings()
         {
             int foundCount = 0;
             foreach (var item in Assembly.GetEntryAssembly().GetTypes().Where(x => x.IsClass))
@@ -674,9 +677,6 @@ namespace Flamingo
             bool clearQueue = false,
             Func<FlamingoCore, Exception, Task> errorHandler = null)
         {
-            var found = AddAttributedInComings();
-            Console.WriteLine($"{found} Attributed inComing found!");
-
             int messageOffset = 0;
             Update[] emptyUpdates = Array.Empty<Update>();
 
@@ -747,9 +747,6 @@ namespace Flamingo
         public void StartReceiving(
             Func<ITelegramBotClient, Exception, CancellationToken, Task> onError)
         {
-            var found = AddAttributedInComings();
-            Console.WriteLine($"{found} Attributed inComing found!");
-
             BotClient.StartReceiving(
                 new DefaultUpdateHandler(
                     HandleUpdateLongPollingAsync,
@@ -765,9 +762,6 @@ namespace Flamingo
         public async Task ReceiveAsync(
             Func<ITelegramBotClient, Exception, CancellationToken, Task> onError)
         {
-            var found = AddAttributedInComings();
-            Console.WriteLine($"{found} Attributed inComing found!");
-
             await BotClient.ReceiveAsync(
                 new DefaultUpdateHandler(
                     HandleUpdateLongPollingAsync,
