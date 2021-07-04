@@ -136,7 +136,7 @@ namespace FlamingoProduction
 
             // - Use Extensions ...
             await cdmt.ReplyText($"Your {mode} is sad at level 0",
-                replyMarkup: new InlineKeyboardMarkup(btns.Markup()));
+                replyMarkup: btns.Markup());
             return true;
         }
 
@@ -178,7 +178,7 @@ namespace FlamingoProduction
                 });
 
                 await cdmt.EditText($"Your mode is {mode} at level {level}", 
-                    replyMarkup: new InlineKeyboardMarkup(btns.Markup()));
+                    replyMarkup: btns.Markup());
                 await cdmt.Answer();
             }
 

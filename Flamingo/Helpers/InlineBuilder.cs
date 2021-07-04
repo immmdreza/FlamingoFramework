@@ -46,7 +46,10 @@ namespace Flamingo.Helpers
             _struncture = (this as IGridBuilder<(string, string)>).innerColumnBuilder(1, rows);
         }
 
-        public List<List<InlineKeyboardButton>> Markup()
+        /// <summary>
+        /// Give <see cref="InlineKeyboardMarkup"/> of your buttons.
+        /// </summary>
+        public InlineKeyboardMarkup Markup()
         {
             var result = new List<List<InlineKeyboardButton>>();
 
@@ -60,7 +63,7 @@ namespace Flamingo.Helpers
                 }
             }
 
-            return result;
+            return new InlineKeyboardMarkup(result);
         }
 
         /// <summary>

@@ -87,7 +87,6 @@ namespace Flamingo.Condiments
 
         #region Extensions
 
-
         /// <summary>
         /// Shorthand method for <see cref="FlamingoCore.WaitForInComing{U}(IFisherAwaits{U})"/>
         /// </summary>
