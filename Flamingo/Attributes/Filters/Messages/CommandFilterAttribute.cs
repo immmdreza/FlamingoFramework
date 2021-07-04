@@ -1,4 +1,5 @@
-﻿using Flamingo.Filters.MessageFilters;
+﻿using Flamingo.Filters.Enums;
+using Flamingo.Filters.MessageFilters;
 
 namespace Flamingo.Attributes.Filters.Messages
 {
@@ -29,8 +30,25 @@ namespace Flamingo.Attributes.Filters.Messages
         /// </summary>
         /// <param name="commands">Command that are allowed</param>
         /// <param name="prefix">Prefix of command. default to '/'</param>
-        public CommandFilterAttribute(string commands, char prefix = '/')
-            : base(new CommandFilter(commands, prefix))
+        /// <param name="argumentsMode">If command should carry arguments</param>
+        public CommandFilterAttribute(
+            string commands,
+            ArgumentsMode argumentsMode = ArgumentsMode.Idc,
+            char prefix = '/')
+            : base(new CommandFilter(commands, prefix, argumentsMode))
+        { }
+
+        /// <summary>
+        /// Filters messages with specified command
+        /// </summary>
+        /// <param name="prefix">Prefix of command. default to '/'</param>
+        /// <param name="commands">Command that are allowed</param>
+        /// <param name="argumentsMode">If command should carry arguments</param>
+        public CommandFilterAttribute(
+            char prefix,
+            ArgumentsMode argumentsMode,
+            params string[] commands)
+            : base(new CommandFilter(prefix, argumentsMode, commands))
         { }
     }
 }

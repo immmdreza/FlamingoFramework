@@ -180,3 +180,7 @@ In this example we show you how to go deep inside flamingo and create your own h
 ### Fun Flamingo
 A fun example that only flamingo allows you to build!
 - [FunFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/FunFlamingo)
+
+### DeepLinking Flamingo
+Learn how to setup deep linking in your bot 
+- [DeepLinkingFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/DeepLinkingFlamingo)

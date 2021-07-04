@@ -4,6 +4,7 @@ using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Condiments;
 using Flamingo.Condiments.Extensions;
 using Flamingo.Filters;
+using Flamingo.Filters.Enums;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
 using Flamingo.Fishes;
@@ -17,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace FlamingoProduction
 {
@@ -78,6 +78,14 @@ namespace FlamingoProduction
         {
             Console.WriteLine(e);
             return Task.CompletedTask;
+        }
+
+        [InComingMessage]
+        [CommandFilter("start", ArgumentsMode.NoArgs)]
+        public static async Task<bool> NormalStart(ICondiment<Message> cdmt)
+        {
+            await cdmt.ReplyText($"Just Started!");
+            return true;
         }
 
         [InComingMessage(Group = 1)]

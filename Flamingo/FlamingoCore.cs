@@ -144,7 +144,6 @@ namespace Flamingo
                 {
                     var allAttr = Attribute.GetCustomAttributes(m);
 
-                    bool added = false;
                     foreach (var target in allAttr)
                     {
                         if (target is InComingMessageAttribute inComingMessage)
@@ -154,16 +153,12 @@ namespace Flamingo
                                 isEdited: inComingMessage.IsEdited,
                                 isChannelPost: inComingMessage.IsChannelPost);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingCallbackQueryAttribute inComingCallback)
                         {
                             InAttributedProcess<CallbackQuery>(m, allAttr,
                                 group: inComingCallback.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingChatMemberAttribute inComingChatMember)
                         {
@@ -171,60 +166,44 @@ namespace Flamingo
                                 group: inComingChatMember.Group,
                                 isMine: inComingChatMember.IsMine);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingInlineQueryAttribute inComingInline)
                         {
                             InAttributedProcess<InlineQuery>(m, allAttr,
                                 group: inComingInline.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingChosenInlineResultAttribute inComing)
                         {
                             InAttributedProcess<ChosenInlineResult>(m, allAttr,
                                 group: inComing.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingPollAttribute inComingPoll)
                         {
                             InAttributedProcess<Poll>(m, allAttr,
                                 group: inComingPoll.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingPollAnswerAttribute inComingPollAnswer)
                         {
                             InAttributedProcess<PollAnswer>(m, allAttr,
                                 group: inComingPollAnswer.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingShippingQueryAttribute inComingShippingQuery)
                         {
                             InAttributedProcess<ShippingQuery>(m, allAttr,
                                 group: inComingShippingQuery.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                         else if (target is InComingPreCheckoutQueryAttribute inComingPreCheckoutQuery)
                         {
                             InAttributedProcess<PreCheckoutQuery>(m, allAttr,
                                 group: inComingPreCheckoutQuery.Group);
                             foundCount++;
-                            added = true;
-                            break;
                         }
                     }
-
-                    if (added) break;
                 }
             }
             return foundCount;
