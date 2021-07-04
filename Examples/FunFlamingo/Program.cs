@@ -7,18 +7,17 @@ using Flamingo.Filters.CallbackQueryFilters;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
-using System;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace FunFlamingo
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static async Task Main()
         {
-            var flamingo = new FlamingoCore();
+            var flamingo = await new FlamingoCore()
+                .InitBot("1820608649:AAG981uKed7_ZE-VrN4MzIYnvPuI1KCz7N8");
 
             await flamingo.Fly();
         }
@@ -30,10 +29,37 @@ namespace FunFlamingo
         {
             var btn1 = new InlineBuilder(("Yeah", "fun1_yeah"), ("Nope", "fun1_no"));
             await cdmt.ReplyText("You need some fun yeah?",
-                replyMarkup: new InlineKeyboardMarkup(btn1.Markup()));
+                replyMarkup: btn1.Markup());
 
-            await cdmt.WaitFor(new SimpleAwaitableInComing<CallbackQuery>(
-                new RegexFilter("^fun1_")));
+            var call = await cdmt.WaitFor(Awaiters.AwaitCallbackQuery(new RegexFilter("^fun1_")));
+
+            if(call.Succeeded)
+            {
+                if(call.Cdmt.GetRequireArgs(out string mode, 1))
+                {
+                    if(mode == "yeah")
+                    {
+                        await call.Cdmt.EditText("Someone needs fun!");
+                        await cdmt.RespondText("OK, what's your name fun hunter?");
+
+                        var respond = await cdmt.WaitFor(Awaiters.AwaitTextRespond(cdmt.SenderId));
+
+                        if(respond.Succeeded)
+                        {
+                            var name = respond.Cdmt.StringQuery;
+
+                            await respond.Cdmt.ReplyText($"Dear {name}, if you need some fun then use Flamingo 😁 ");
+                        }
+                    }
+                    else
+                    {
+                        await call.Cdmt.EditText("How bad :(");
+                        await call.Cdmt.Answer();
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

@@ -176,3 +176,7 @@ See how to use await-able incoming handlers to wait for user answers and fill a 
 ### DeepInside Flamingo
 In this example we show you how to go deep inside flamingo and create your own handlers and condiments. so you can use any custom properties in your handlers and even control lifecycle of db objects and etc.
 - [DeepInsideFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/DeepInsideFlamingo)
+
+### Fun Flamingo
+A fun example that only flamingo allows you to build!
+- [FunFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/FunFlamingo)

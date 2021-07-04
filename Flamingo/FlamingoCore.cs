@@ -256,159 +256,60 @@ namespace Flamingo
         /// <param name="isEdited">(For Messages only) if it's for edited messages</param>
         /// <param name="isChannelPost">(For Messages only) if it's for channel messages</param>
         /// <param name="isMine">(For ChatMemberUpdated only) is it's MyChatMember</param>
-        public void AddInComing<T>(IFish<T> fish, int group = 0,
+        public void AddInComing<T>(IFish<T> fish,
+            int group = 0,
             bool isEdited = false,
             bool isChannelPost = false,
             bool isMine = false)
         {
-            if(typeof(T) == typeof(Message))
-            {
-                AddInComingMessage(fish as IFish<Message>, isEdited, isChannelPost, group);
-            }
-            else if(typeof(T) == typeof(CallbackQuery))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<CallbackQuery>(fish as IFish<CallbackQuery>, group));
+            var updateType = Extensions.AsUpdateType<T>(isEdited, isChannelPost, isMine);
 
-                if (!_allowedUpdates.Contains(UpdateType.CallbackQuery))
-                {
-                    _allowedUpdates.Add(UpdateType.CallbackQuery);
-                }
-            }
-            else if (typeof(T) == typeof(InlineQuery))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<InlineQuery>(fish as IFish<InlineQuery>, group));
+            _inComingManager.SafeAdd(new GroupedInComing<T>(fish, group));
 
-                if (!_allowedUpdates.Contains(UpdateType.InlineQuery))
-                {
-                    _allowedUpdates.Add(UpdateType.InlineQuery);
-                }
-            }
-            else if (typeof(T) == typeof(ChosenInlineResult))
+            if (!_allowedUpdates.Contains(updateType))
             {
-                _inComingManager.SafeAdd(new GroupedInComing<ChosenInlineResult>(
-                    fish as IFish<ChosenInlineResult>, group));
-
-                if (!_allowedUpdates.Contains(UpdateType.ChosenInlineResult))
-                {
-                    _allowedUpdates.Add(UpdateType.ChosenInlineResult);
-                }
-            }
-            else if (typeof(T) == typeof(Poll))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<Poll>(fish as IFish<Poll>, group));
-
-                if (!_allowedUpdates.Contains(UpdateType.Poll))
-                {
-                    _allowedUpdates.Add(UpdateType.Poll);
-                }
-            }
-            else if (typeof(T) == typeof(PollAnswer))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<PollAnswer>(fish as IFish<PollAnswer>, group));
-
-                if (!_allowedUpdates.Contains(UpdateType.PollAnswer))
-                {
-                    _allowedUpdates.Add(UpdateType.PollAnswer);
-                }
-            }
-            else if (typeof(T) == typeof(ShippingQuery))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<ShippingQuery>(fish as IFish<ShippingQuery>, group));
-
-                if (!_allowedUpdates.Contains(UpdateType.ShippingQuery))
-                {
-                    _allowedUpdates.Add(UpdateType.ShippingQuery);
-                }
-            }
-            else if (typeof(T) == typeof(PreCheckoutQuery))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<PreCheckoutQuery>(fish as IFish<PreCheckoutQuery>, group));
-
-                if (!_allowedUpdates.Contains(UpdateType.PreCheckoutQuery))
-                {
-                    _allowedUpdates.Add(UpdateType.PreCheckoutQuery);
-                }
-            }
-            else if (typeof(T) == typeof(ChatMemberUpdated))
-            {
-                _inComingManager.SafeAdd(new GroupedInComing<ChatMemberUpdated>(fish as IFish<ChatMemberUpdated>, group));
-
-                if (isMine)
-                {
-                    if (!_allowedUpdates.Contains(UpdateType.MyChatMember))
-                    {
-                        _allowedUpdates.Add(UpdateType.MyChatMember);
-                    }
-                }
-                else
-                {
-                    if (!_allowedUpdates.Contains(UpdateType.ChatMember))
-                    {
-                        _allowedUpdates.Add(UpdateType.ChatMember);
-                    }
-                }
+                _allowedUpdates.Add(updateType);
             }
         }
-
 
         /// <summary>
         /// (Not recommended) If you are not using <see cref="WaitForInComing{T}(IFisherAwaits{T})"/> 
         /// and you want to create await-able handlers manually, then use this to add an await-able
-        /// incoming handler to the Flamingo! and then call <see cref="IFisherAwaits{T}.Wait(Dictionary{IFish{T}, int})"/>
+        /// incoming handler to the Flamingo! and then call <see cref="IFisherAwaits{T}.AwaitFor"/>
         /// to wait for respond.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="fish"></param>
-        /// <param name="group">Grouping rank if required</param>
-        /// <returns></returns>
-        public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish, int group = 0)
+        public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false)
         {
+            var updateType = Extensions.AsUpdateType<T>(
+                isEdited, isChannelPost, isMine);
+
             var toAdd = new GroupedInComing<T>(fish as IFish<T>, group);
             _inComingAwaitableManager.SafeAdd(toAdd);
+
+            if (!_allowedUpdates.Contains(updateType))
+            {
+                _allowedUpdates.Add(updateType);
+            }
+
             return toAdd;
         }
 
-        private void AddInComingMessage(
-            IFish<Message> fish, bool isEdited = false,
-            bool isChannelPost = false, int group = 0)
-        {
-            _inComingManager.SafeAdd(new GroupedInComing<Message>(fish, group));
-
-            if(isChannelPost)
-            {
-                if (isEdited)
-                {
-                    if (!_allowedUpdates.Contains(UpdateType.EditedChannelPost))
-                    {
-                        _allowedUpdates.Add(UpdateType.EditedChannelPost);
-                    }
-                }
-                else
-                {
-                    if (!_allowedUpdates.Contains(UpdateType.ChannelPost))
-                    {
-                        _allowedUpdates.Add(UpdateType.ChannelPost);
-                    }
-                }
-            }
-
-            if (isEdited)
-            {
-                if (!_allowedUpdates.Contains(UpdateType.EditedMessage))
-                {
-                    _allowedUpdates.Add(UpdateType.EditedMessage);
-                }
-            }
-            else
-            {
-                if (!_allowedUpdates.Contains(UpdateType.Message))
-                {
-                    _allowedUpdates.Add(UpdateType.Message);
-                }
-            }
-        }
-
         private List<UpdateType> _allowedUpdates;
+
+        /// <summary>
+        /// You can force flamingo to receive update type of your choice
+        /// </summary>
+        /// <remarks>Flamingo will setup allowed updates based on your handlers automatically
+        /// and you may not need this</remarks>
+        /// <param name="updateType"></param>
+        public void AddAllowedUpdateType(UpdateType updateType)
+        {
+            _allowedUpdates.Add(updateType);
+        }
 
         /// <summary>
         /// Processes await-able incomings here 

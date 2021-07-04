@@ -17,6 +17,11 @@ namespace Flamingo.Fishes
         }
 
         /// <summary>
+        /// Indicates that incoming update received successfully 
+        /// </summary>
+        public bool Succeeded => Status == AwaitableStatus.Succeeded;
+
+        /// <summary>
         /// The status of current Await-able incoming
         /// </summary>
         public AwaitableStatus Status { get; }

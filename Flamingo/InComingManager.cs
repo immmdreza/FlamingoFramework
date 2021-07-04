@@ -24,7 +24,7 @@ namespace Flamingo
         public SortedSet<GroupedInComing<T>> GetInComingList<T>()
         {
             var type = typeof(T);
-            dynamic result;
+            object result;
 
             if (type == typeof(Message)) result = InComingMessages;
             else if (type == typeof(CallbackQuery)) result = InComingCallbackQueries;
