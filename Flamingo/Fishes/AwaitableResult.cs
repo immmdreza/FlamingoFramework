@@ -17,9 +17,19 @@ namespace Flamingo.Fishes
         }
 
         /// <summary>
+        /// Text respond fetched from <see cref="ICondiment{T}.StringQuery"/>
+        /// </summary>
+        public string TextRespond => Cdmt.StringQuery;
+
+        /// <summary>
         /// Indicates that incoming update received successfully 
         /// </summary>
         public bool Succeeded => Status == AwaitableStatus.Succeeded;
+
+        /// <summary>
+        /// Indicates that waiting for incoming timed out!
+        /// </summary>
+        public bool TimedOut => Status == AwaitableStatus.TimedOut;
 
         /// <summary>
         /// The status of current Await-able incoming

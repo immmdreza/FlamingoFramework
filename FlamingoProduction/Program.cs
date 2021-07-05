@@ -96,25 +96,26 @@ namespace FlamingoProduction
             await cdmt.ReplyText("OK what is your name?");
 
             var handle = new AwaitInComingText(cdmt.SenderId);
-            var result = await cdmt.Flamingo.WaitForInComing(handle);
 
-            if(result.Cdmt == null)
+            var result = await cdmt.WaitForTextRespond(cdmt.SenderId);
+
+            if(!result.Succeeded)
             {
-                if(result.Status == AwaitableStatus.TimedOut)
+                if(result.TimedOut)
                 {
                     await cdmt.ReplyText("Request has been timed out!");
                 }
-                
+
                 return false;
             }
 
-            if (result.Cdmt.StringQuery == "/cancel")
+            if (result.TextRespond == "/cancel")
             {
                 handle.Cancell();
                 await cdmt.ReplyText("Canceled");
             }
 
-            await cdmt.ReplyText($"OK your name is {result.Cdmt.StringQuery}");
+            await cdmt.ReplyText($"OK your name is {result.TextRespond}");
 
             return true;
         }

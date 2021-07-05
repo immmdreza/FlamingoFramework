@@ -15,9 +15,11 @@ namespace Flamingo.Fishes.Awaitables
         /// <summary>
         /// Awaits for a text respond from specified user in private chat only!
         /// </summary>
-        public static SimpleAwaitableInComing<Message> AwaitTextRespond(long userId)
+        public static SimpleAwaitableInComing<Message> AwaitTextRespond(
+            long userId, int timeOut = 30,
+            CancellationTokenSource cancellationToken = default)
         {
-            return new AwaitInComingText(userId);
+            return new AwaitInComingText(userId, timeOut, cancellationToken);
         }
 
         /// <summary>
