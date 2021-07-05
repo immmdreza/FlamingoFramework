@@ -6,7 +6,8 @@ namespace Flamingo.Condiments.HotCondiments
     public class PollCondiment : CondimentBase<Poll>
     {
         /// <inheritdoc/>
-        public PollCondiment(Poll inComing, FlamingoCore flamingo) : base(inComing, flamingo)
+        public PollCondiment(Poll inComing, IFlamingoCore flamingo) 
+            : base(inComing, flamingo)
         { }
     }
 }

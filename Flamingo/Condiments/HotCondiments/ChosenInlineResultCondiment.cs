@@ -7,7 +7,7 @@ namespace Flamingo.Condiments.HotCondiments
     {
         /// <inheritdoc/>
         public ChosenInlineResultCondiment(
-            ChosenInlineResult inComing, FlamingoCore flamingo) : base(inComing, flamingo)
+            ChosenInlineResult inComing, IFlamingoCore flamingo) : base(inComing, flamingo)
         { }
 
         /// <inheritdoc/>

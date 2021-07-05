@@ -8,7 +8,7 @@ namespace Flamingo.Condiments.HotCondiments
         /// <inheritdoc/>
         public MessageCondiment(
             Message inComing,
-            FlamingoCore flamingo,
+            IFlamingoCore flamingo,
             bool isChannelPost = false,
             bool isEdited = false) 
             : base(inComing, flamingo)

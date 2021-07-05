@@ -7,7 +7,7 @@ namespace Flamingo.Condiments.HotCondiments
     public class ShippingQueryCondiment : CondimentBase<ShippingQuery>
     {
         /// <inheritdoc/>
-        public ShippingQueryCondiment(ShippingQuery inComing, FlamingoCore flamingo) 
+        public ShippingQueryCondiment(ShippingQuery inComing, IFlamingoCore flamingo) 
             : base(inComing, flamingo)
         { }
 

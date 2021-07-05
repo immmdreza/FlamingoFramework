@@ -7,7 +7,7 @@ namespace Flamingo.Condiments.HotCondiments
     public class PreCheckoutQueryCondiment : CondimentBase<PreCheckoutQuery>
     {
         /// <inheritdoc/>
-        public PreCheckoutQueryCondiment(PreCheckoutQuery inComing, FlamingoCore flamingo) 
+        public PreCheckoutQueryCondiment(PreCheckoutQuery inComing, IFlamingoCore flamingo) 
             : base(inComing, flamingo)
         { }
 

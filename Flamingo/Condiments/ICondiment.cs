@@ -2,11 +2,11 @@
 using Flamingo.Fishes;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace Flamingo.Condiments
 {
@@ -17,6 +17,11 @@ namespace Flamingo.Condiments
     public interface ICondiment<T>
     {
         /// <summary>
+        /// Update type of this condiment
+        /// </summary>
+        public UpdateType UpdateType { get; }
+
+        /// <summary>
         /// InComing Update!
         /// </summary>
         public T InComing { get; }
@@ -24,7 +29,7 @@ namespace Flamingo.Condiments
         /// <summary>
         /// The engaged instance of FlamingoCore
         /// </summary>
-        public FlamingoCore Flamingo { get; }
+        public IFlamingoCore Flamingo { get; }
 
         /// <summary>
         /// The engaged instance of ITelegramBotClient
@@ -42,7 +47,7 @@ namespace Flamingo.Condiments
         /// Query arguments fetched by splitting string query ( mostly with ' ' )
         /// </summary>
         /// <remarks>Consider using <c>GetRequireArgs</c> to check args safe and quickly</remarks>
-        public IEnumerable<string> QueryArgs { get; }
+        public string[] QueryArgs { get; }
 
 
         #region Extra attr

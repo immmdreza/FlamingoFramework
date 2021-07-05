@@ -11,7 +11,7 @@ namespace Flamingo.Condiments.HotCondiments
         /// <inheritdoc/>
         public ChatMemberCondiment(
             ChatMemberUpdated inComing,
-            FlamingoCore flamingo,
+            IFlamingoCore flamingo,
             bool isMine)
             : base(inComing, flamingo)
         {

@@ -7,7 +7,7 @@ namespace Flamingo.Condiments.HotCondiments
     public class InlineQueryCondiment : CondimentBase<InlineQuery>
     {
         /// <inheritdoc/>
-        public InlineQueryCondiment(InlineQuery inComing, FlamingoCore flamingo) 
+        public InlineQueryCondiment(InlineQuery inComing, IFlamingoCore flamingo) 
             : base(inComing, flamingo)
         { }
 

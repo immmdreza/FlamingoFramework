@@ -47,7 +47,7 @@ namespace Flamingo.Fishes.InComingFishes
         /// <summary>
         /// Instance of FlamingoCore that takes care of update
         /// </summary>
-        protected FlamingoCore Flamingo => Cdmt.Flamingo;
+        protected IFlamingoCore Flamingo => Cdmt.Flamingo;
 
         /// <summary>
         /// Engaged bot.

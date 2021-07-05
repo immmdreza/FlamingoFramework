@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using static Flamingo.Extensions;
 
 namespace Flamingo.Condiments
 {
@@ -16,22 +17,25 @@ namespace Flamingo.Condiments
         /// </summary>
         /// <param name="inComing">InComing Update</param>
         /// <param name="flamingo">The engaged instance of FlamingoCore</param>
-        public CondimentBase(
-            T inComing,
-            FlamingoCore flamingo)
+        public CondimentBase(T inComing, IFlamingoCore flamingo)
         {
+            UpdateType = AsUpdateType<T>();
+
             InComing = inComing;
             Flamingo = flamingo;
         }
 
         /// <inheritdoc/>
+        public UpdateType UpdateType { get; }
+
+        /// <inheritdoc/>
         public T InComing { get; }
 
         /// <inheritdoc/>
-        public FlamingoCore Flamingo { get; }
+        public IFlamingoCore Flamingo { get; }
 
         /// <inheritdoc/>
-        public virtual IEnumerable<string> QueryArgs
+        public virtual string[] QueryArgs
         {
             get
             {

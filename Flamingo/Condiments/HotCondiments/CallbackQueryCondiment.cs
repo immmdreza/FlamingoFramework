@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 
 namespace Flamingo.Condiments.HotCondiments
 {
@@ -11,7 +10,7 @@ namespace Flamingo.Condiments.HotCondiments
         /// <inheritdoc/>
         public CallbackQueryCondiment(
             CallbackQuery inComing,
-            FlamingoCore flamingo,
+            IFlamingoCore flamingo,
             char spliterChar)
             : base(inComing, flamingo)
         {
@@ -28,7 +27,7 @@ namespace Flamingo.Condiments.HotCondiments
         public override string StringQuery => InComing.Data;
 
         /// <inheritdoc/>
-        public override IEnumerable<string> QueryArgs
+        public override string[] QueryArgs
         {
             get
             {

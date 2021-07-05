@@ -3,11 +3,10 @@ using Flamingo.Attributes.Filters;
 using Flamingo.Attributes.Filters.Async;
 using Flamingo.Condiments;
 using Flamingo.Condiments.HotCondiments;
+using Flamingo.Exceptions;
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
-using Flamingo.Fishes.Awaitables;
-using Flamingo.Fishes.InComingFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using System;
 using System.Collections.Generic;
@@ -28,17 +27,24 @@ namespace Flamingo
     /// <summary>
     /// Main class to setup handler, run bot and more ...
     /// </summary>
-    public class FlamingoCore
+    public class FlamingoCore : IFlamingoCore
     {
-        private char _callbackDataSpliter;
-
-        private TelegramBotClient _botClient;
-
-        private User _botInfo;
+        /// <summary>
+        /// splitter char for callback query data
+        /// </summary>
+        protected char _callbackDataSpliter;
 
         /// <summary>
-        /// Telegram bot that is suppose to run
+        /// Telegram bot instance
         /// </summary>
+        protected TelegramBotClient _botClient;
+
+        /// <summary>
+        /// Bot user info
+        /// </summary>
+        protected User _botInfo;
+
+        /// <inheritdoc/>
         public TelegramBotClient BotClient => _botClient;
 
         private readonly HttpClient _httpClient;
@@ -51,19 +57,13 @@ namespace Flamingo
 
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        /// <summary>
-        /// The this of allowed updates based on InComings you've added
-        /// </summary>
+        /// <inheritdoc/>
         public List<UpdateType> AllowedUpdates => _allowedUpdates;
 
-        /// <summary>
-        /// CancellationTokenSource to do cancellation stuff
-        /// </summary>
+        /// <inheritdoc/>
         public CancellationTokenSource CancellationTokenSource => _cancellationTokenSource;
 
-        /// <summary>
-        /// User object of bot itself ( Filled when calling <see cref="InitBot(string, char)"/> )
-        /// </summary>
+        /// <inheritdoc/>
         public User BotInfo => _botInfo;
 
         /// <summary>
@@ -85,18 +85,32 @@ namespace Flamingo
             Console.WriteLine($"{found} Attributed inComing found!");
         }
 
-        /// <summary>
-        /// Initialize your bot!
-        /// </summary>
-        /// <param name="botToken">Bot token from @BotFather!</param>
-        /// <param name="callbackDataSpliter">char that uses to split call back data</param>
-        /// <returns>The flamingo core instance itself</returns>
+        /// <inheritdoc/>
         public async Task<FlamingoCore> InitBot(string botToken, char callbackDataSpliter = '_')
         {
             _callbackDataSpliter = callbackDataSpliter;
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
             _botInfo = await _botClient.GetMeAsync();
 
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public FlamingoCore InitBot(string botToken, bool getMe = false, char callbackDataSpliter = '_')
+        {
+            _callbackDataSpliter = callbackDataSpliter;
+            _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
+
+            if (getMe)
+                _botInfo = _botClient.GetMeAsync().GetAwaiter().GetResult();
+
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public async Task<FlamingoCore> SetBotInfo()
+        {
+            _botInfo = await _botClient.GetMeAsync();
             return this;
         }
 
@@ -130,6 +144,23 @@ namespace Flamingo
             AddInComing(inComing, group, isEdited, isChannelPost, isMine);
         }
 
+        private bool CheckCallbackMethod<T>(MethodInfo methodInfo)
+        {
+            var param = methodInfo.GetParameters();
+
+            if (param.Length > 1) return false;
+
+            var type = param[0].ParameterType;
+
+            if (type != typeof(ICondiment<T>)) return false;
+
+            var returnType = methodInfo.ReturnType;
+
+            if (returnType != typeof(Task<bool>)) return false;
+
+            return true;
+        }
+
         /// <summary>
         /// This method will search the project for InComing attributes
         /// Then adds them to the FlamingoCore using <see cref="AddInComing{T}(IFish{T}, int, bool, bool, bool)"/>
@@ -148,59 +179,115 @@ namespace Flamingo
                     {
                         if (target is InComingMessageAttribute inComingMessage)
                         {
+                            if (!CheckCallbackMethod<Message>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<Message>(m, allAttr,
                                 group: inComingMessage.Group,
                                 isEdited: inComingMessage.IsEdited,
                                 isChannelPost: inComingMessage.IsChannelPost);
+
                             foundCount++;
                         }
                         else if (target is InComingCallbackQueryAttribute inComingCallback)
                         {
+                            if (!CheckCallbackMethod<CallbackQuery>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<CallbackQuery>(m, allAttr,
                                 group: inComingCallback.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingChatMemberAttribute inComingChatMember)
                         {
+
+                            if (!CheckCallbackMethod<ChatMemberUpdated>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<ChatMemberUpdated>(m, allAttr,
                                 group: inComingChatMember.Group,
                                 isMine: inComingChatMember.IsMine);
+
                             foundCount++;
                         }
                         else if (target is InComingInlineQueryAttribute inComingInline)
                         {
+                            if (!CheckCallbackMethod<InlineQuery>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<InlineQuery>(m, allAttr,
                                 group: inComingInline.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingChosenInlineResultAttribute inComing)
                         {
+                            if (!CheckCallbackMethod<ChosenInlineResult>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<ChosenInlineResult>(m, allAttr,
                                 group: inComing.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingPollAttribute inComingPoll)
                         {
+                            if (!CheckCallbackMethod<Poll>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<Poll>(m, allAttr,
                                 group: inComingPoll.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingPollAnswerAttribute inComingPollAnswer)
                         {
+
+                            if (!CheckCallbackMethod<PollAnswer>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<PollAnswer>(m, allAttr,
                                 group: inComingPollAnswer.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingShippingQueryAttribute inComingShippingQuery)
                         {
+                            if (!CheckCallbackMethod<ShippingQuery>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<ShippingQuery>(m, allAttr,
                                 group: inComingShippingQuery.Group);
+
                             foundCount++;
                         }
                         else if (target is InComingPreCheckoutQueryAttribute inComingPreCheckoutQuery)
                         {
+                            if (!CheckCallbackMethod<PreCheckoutQuery>(m))
+                            {
+                                throw new NotACallbackFunc(m.Name);
+                            }
+
                             InAttributedProcess<PreCheckoutQuery>(m, allAttr,
                                 group: inComingPreCheckoutQuery.Group);
+
                             foundCount++;
                         }
                     }
@@ -209,32 +296,7 @@ namespace Flamingo
             return foundCount;
         }
 
-        /// <summary>
-        /// Add your inComings (handlers) to the Flamingo 🦩
-        /// </summary>
-        /// <remarks>
-        /// This inComing handler could be a <see cref="SimpleInComing{T}"/>
-        /// or one of ready to use Incoming handlers for every update you may like see following list:
-        /// <list type="bullet">
-        /// <item>
-        /// <see cref="InComingMessage"/> for every type of message including edited or channel posts
-        /// </item>
-        /// <item><see cref="InComingCallbackQuery"/> for callback queries.</item>
-        /// <item><see cref="InComingInlineQuery"/> for in-line queries</item>
-        /// <item><see cref="InComingChosenInlineResult"/></item> for chosen in-line results
-        /// <item><see cref="InComingChatMember"/></item> for both ChatMember and MyChatMember
-        /// <item><see cref="InComingPoll"/></item> for updates about polls
-        /// <item><see cref="InComingPollAnswer"/></item> for updates about polls answer
-        /// <item><see cref="InComingShippingQuery"/> and <see cref="InComingPreCheckoutQuery"/>
-        /// for shipping stuff</item>
-        /// </list>
-        /// </remarks>
-        /// <typeparam name="T">Type of inComing update</typeparam>
-        /// <param name="fish">Your incoming handler</param>
-        /// <param name="group">Process group number. (Lower group processes sooner)</param>
-        /// <param name="isEdited">(For Messages only) if it's for edited messages</param>
-        /// <param name="isChannelPost">(For Messages only) if it's for channel messages</param>
-        /// <param name="isMine">(For ChatMemberUpdated only) is it's MyChatMember</param>
+        /// <inheritdoc/>
         public void AddInComing<T>(IFish<T> fish,
             int group = 0,
             bool isEdited = false,
@@ -250,13 +312,7 @@ namespace Flamingo
                 _allowedUpdates.Add(updateType);
             }
         }
-
-        /// <summary>
-        /// (Not recommended) If you are not using <see cref="WaitForInComing{T}(IFisherAwaits{T})"/> 
-        /// and you want to create await-able handlers manually, then use this to add an await-able
-        /// incoming handler to the Flamingo! and then call <see cref="IFisherAwaits{T}.AwaitFor"/>
-        /// to wait for respond.
-        /// </summary>
+        /// <inheritdoc/>
         public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish,
             int group = 0,
             bool isEdited = false,
@@ -279,30 +335,18 @@ namespace Flamingo
 
         private List<UpdateType> _allowedUpdates;
 
-        /// <summary>
-        /// You can force flamingo to receive update type of your choice
-        /// </summary>
-        /// <remarks>Flamingo will setup allowed updates based on your handlers automatically
-        /// and you may not need this</remarks>
-        /// <param name="updateType"></param>
+        /// <inheritdoc/>
         public void AddAllowedUpdateType(UpdateType updateType)
         {
             _allowedUpdates.Add(updateType);
         }
 
-        /// <summary>
-        /// Processes await-able incomings here 
-        /// </summary>
-        /// <remarks>If this method return true, 
-        /// then normal handlers should not be processed for this update.</remarks>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="condiment"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<bool> ProcessAwaitables<T>(ICondiment<T> condiment)
         {
             var manager = _inComingAwaitableManager.GetInComingList<T>();
 
-            if(manager.Any())
+            if (manager.Any())
             {
                 foreach (var inComing in manager)
                 {
@@ -326,7 +370,7 @@ namespace Flamingo
             if (await ProcessAwaitables(condiment)) return;
 
             foreach (var inComing in _inComingMessages
-                .Where(x=> !(x.InComingFish is IFisherAwaits<T>)))
+                .Where(x => !(x.InComingFish is IFisherAwaits<T>)))
             {
                 if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
@@ -338,17 +382,7 @@ namespace Flamingo
             }
         }
 
-        /// <summary>
-        /// Wanna go even deeper? This is used when you have your own update receiver
-        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
-        /// of your choice that is customized the way you like for every single update.
-        /// </summary>
-        /// <remarks>
-        /// This is useful when you need to pass your own properties to the update Condiment
-        /// and use them when handling update. and you can also control their life cycle.
-        /// </remarks>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="condiment"></param>
+        /// <inheritdoc/>
         public async Task ProcessInComings<T>(
             ICondiment<T> condiment)
         {
@@ -363,18 +397,7 @@ namespace Flamingo
             }
         }
 
-        /// <summary>
-        /// Wanna go even deeper? This is used when you have your own update receiver
-        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
-        /// of your choice that is customized the way you like for every single update.
-        /// </summary>
-        /// <remarks>
-        /// This is useful when you need to pass your own properties to the update Condiment
-        /// and use them when handling update. and you can also control their life cycle.
-        /// </remarks>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="condiment"></param>
-        /// <returns>Get an async Enumerable of InComing handlers that passed filters</returns>
+        /// <inheritdoc/>
         public async IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment)
         {
             var _inComingMessages = _inComingManager.GetInComingList<T>();
@@ -391,30 +414,14 @@ namespace Flamingo
             }
         }
 
-        /// <summary>
-        /// Call this to cancel everything that exists
-        /// </summary>
+        /// <inheritdoc/>
         public void TriggerCancell()
         {
             Console.WriteLine("Cancellation triggered!");
             _cancellationTokenSource.Cancel();
         }
 
-        /// <summary>
-        /// This method is the very first thing that flamingo dose when handling
-        /// </summary>
-        /// <remarks>
-        /// Use this method only if you have a customized update receiver.
-        /// If you don't the use one of following:
-        /// <see cref="Fly(bool, Func{FlamingoCore, Exception, Task})"/> From this package
-        /// Or <see cref="StartReceiving(Func{ITelegramBotClient, Exception, CancellationToken, Task})"/>
-        /// and <see cref="ReceiveAsync(Func{ITelegramBotClient, Exception, CancellationToken, Task})"/>
-        /// from Polling extension.
-        /// 
-        /// Don't forget to call <see cref="AddAttributedInComings"/> if you are using attributes
-        /// and customized update receiver.
-        /// </remarks>
-        /// <param name="update">Update you want to process</param>
+        /// <inheritdoc/>
         public async Task UpdateRedirector(Update update)
         {
             switch (update)
@@ -547,12 +554,7 @@ namespace Flamingo
             }
         }
 
-        /// <summary>
-        /// Time has come to fly! Start handlers by calling this.
-        /// </summary>
-        /// <param name="clearQueue">If you don't care about old updates and unprocessed</param>
-        /// <param name="errorHandler">a callback function to handle errors</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task Fly(
             bool clearQueue = false,
             Func<FlamingoCore, Exception, Task> errorHandler = null)
@@ -603,7 +605,7 @@ namespace Flamingo
                             {
                                 await UpdateRedirector(update);
                             }
-                            catch(Exception e) 
+                            catch (Exception e)
                             {
                                 if (errorHandler != null)
                                 {
@@ -620,10 +622,7 @@ namespace Flamingo
         }
 
 
-        /// <summary>
-        /// This is a method provided by "Telegram.Bot.Extensions.Polling" to receive updates
-        /// </summary>
-        /// <param name="onError">Function that called on errors</param>
+        /// <inheritdoc/>
         public void StartReceiving(
             Func<ITelegramBotClient, Exception, CancellationToken, Task> onError)
         {
@@ -635,10 +634,7 @@ namespace Flamingo
         }
 
 
-        /// <summary>
-        /// This is a method provided by "Telegram.Bot.Extensions.Polling" to receive updates
-        /// </summary>
-        /// <param name="onError">Function that called on errors</param>
+        /// <inheritdoc/>
         public async Task ReceiveAsync(
             Func<ITelegramBotClient, Exception, CancellationToken, Task> onError)
         {
@@ -659,23 +655,14 @@ namespace Flamingo
 
         #region Helpers
 
-        /// <summary>
-        /// Waits for a await-able incoming handler ( <see cref="SimpleAwaitableInComing{T}"/> )
-        /// </summary>
-        /// <remarks>Use await! this method will ( and Should ) block and wait for a respond to come.
-        /// Or timeout!</remarks>
-        /// <typeparam name="T">Type of update</typeparam>
-        /// <param name="inComingfish">InComing handler of type <see cref="IFisherAwaits{T}"/></param>
-        /// <returns>Returns <see cref="AwaitableResult{T}"/></returns>
+        /// <inheritdoc/>
         public async Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish)
         {
             var added = AddInComingAwaitable(inComingfish);
             return await inComingfish.Wait(this, added);
         }
 
-        /// <summary>
-        /// Safely remove an await-able handler
-        /// </summary>
+        /// <inheritdoc/>
         public void RemoveAwaitable<T>(GroupedInComing<T> groupedIn)
         {
             var manger = _inComingAwaitableManager.GetInComingList<T>();

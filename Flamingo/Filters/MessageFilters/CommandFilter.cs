@@ -20,13 +20,13 @@ namespace Flamingo.Filters.MessageFilters
 
             var botUsername = "@" + incoming.Flamingo.BotInfo.Username.ToLower();
 
-            var command = incoming.QueryArgs.ElementAt(0).ToLower().Replace(botUsername, "");
+            var command = incoming.QueryArgs[0].ToLower().Replace(botUsername, "");
 
             if (argumentsMode == ArgumentsMode.Require &&
-                incoming.QueryArgs.Count() < 2) return false;
+                incoming.QueryArgs.Length < 2) return false;
 
             if (argumentsMode == ArgumentsMode.NoArgs &&
-                incoming.QueryArgs.Count() > 1) return false;
+                incoming.QueryArgs.Length > 1) return false;
 
             return commands.Any(x => prefix + x == command);
         }

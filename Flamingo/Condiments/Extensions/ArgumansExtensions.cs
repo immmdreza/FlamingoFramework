@@ -11,11 +11,11 @@ namespace Flamingo.Condiments.Extensions
         {
             if (condiment.QueryArgs != null)
             {
-                if (index <= condiment.QueryArgs.Count() - 1)
+                if (index <= condiment.QueryArgs.Length - 1)
                 {
                     return toEnd ?
-                        string.Join(joiner, condiment.QueryArgs.ToArray()[index..]) :
-                        condiment.QueryArgs.ElementAt(index);
+                        string.Join(joiner, condiment.QueryArgs[index..]) :
+                        condiment.QueryArgs[index];
                 }
             }
 
