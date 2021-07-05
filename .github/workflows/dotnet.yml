@@ -17,11 +17,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    - name: Change
-      run: cd Flamingo
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./Flamingo/Flamingo.csproj
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build ./Flamingo/Flamingo.csproj --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test ./Flamingo/Flamingo.csproj --no-build --verbosity normal
