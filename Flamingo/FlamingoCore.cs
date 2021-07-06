@@ -96,7 +96,7 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public FlamingoCore InitBot(string botToken, bool getMe = false, char callbackDataSpliter = '_')
+        public FlamingoCore InitBot(string botToken, bool getMe, char callbackDataSpliter = '_')
         {
             _callbackDataSpliter = callbackDataSpliter;
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);

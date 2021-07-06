@@ -60,5 +60,8 @@ namespace Flamingo.Condiments
 
         /// <inheritdoc/>
         public MatchCollection MatchCollection { get; set; }
+
+        /// <inheritdoc/>
+        public string CommandQuery { get; set; }
     }
 }

@@ -4,7 +4,6 @@ using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Condiments;
 using Flamingo.Condiments.Extensions;
 using Flamingo.Filters.Enums;
-using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -32,7 +31,7 @@ namespace DeepLinkingFlamingo
         [CommandFilter("start", ArgumentsMode.Require)]
         public static async Task<bool> DeepLinks(ICondiment<Message> cdmt)
         {
-            if(cdmt.QueryArgs.ElementAt(1)
+            if(cdmt.CommandQuery
                 .GetRequireArgs(out string param, out long userId, splitter: '_'))
             {
                 if(param == "referralCode")

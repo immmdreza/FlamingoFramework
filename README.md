@@ -184,3 +184,7 @@ A fun example that only flamingo allows you to build!
 ### DeepLinking Flamingo
 Learn how to setup deep linking in your bot 
 - [DeepLinkingFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/DeepLinkingFlamingo)
+
+### Keyboards Flamingo
+Example to work with keyboards 
+- [KeyboardsFlamingo](https://github.com/immmdreza/FlamingoFramework/tree/master/Examples/KeyboardsFlamingo)

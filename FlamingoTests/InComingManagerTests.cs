@@ -28,7 +28,7 @@ namespace Flamingo.Tests
         }
 
         [TestMethod()]
-        public async Task GetInComingListTestAsync()
+        public void GetInComingListTestAsync()
         {
 
         }

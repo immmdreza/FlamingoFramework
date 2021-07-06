@@ -68,7 +68,7 @@ namespace Flamingo.Condiments
         }
 
         /// <summary>
-        /// Userid for sender of update
+        /// User id for sender of update
         /// </summary>
         public long SenderId { get; }
 
@@ -86,6 +86,15 @@ namespace Flamingo.Condiments
         /// You have this if you have a RegexFilter and at least a matched result
         /// </summary>
         public MatchCollection MatchCollection { get; set; }
+
+        /// <summary>
+        /// This is the query that comes after /command
+        /// If any Command Filter is available
+        /// </summary>
+        /// <remark>
+        /// <c>/command CommandQuery</c>
+        /// </remark>
+        public string CommandQuery { get; set; } 
 
         #endregion
 

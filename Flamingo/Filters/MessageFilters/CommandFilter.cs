@@ -28,7 +28,18 @@ namespace Flamingo.Filters.MessageFilters
             if (argumentsMode == ArgumentsMode.NoArgs &&
                 incoming.QueryArgs.Length > 1) return false;
 
-            return commands.Any(x => prefix + x == command);
+            if(commands.Any(x => prefix + x == command))
+            {
+                if (argumentsMode == ArgumentsMode.Require ||
+                    argumentsMode == ArgumentsMode.Idc)
+                {
+                    incoming.CommandQuery = string.Join("\n", incoming.QueryArgs[1..]);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
