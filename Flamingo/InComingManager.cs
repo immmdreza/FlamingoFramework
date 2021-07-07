@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Payments;

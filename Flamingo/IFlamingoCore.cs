@@ -3,6 +3,7 @@ using Flamingo.Fishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
+using Flamingo.RateLimiter;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -209,5 +210,10 @@ namespace Flamingo
         /// <param name="inComingfish">InComing handler of type <see cref="IFisherAwaits{T}"/></param>
         /// <returns>Returns <see cref="AwaitableResult{T}"/></returns>
         Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish);
+
+        /// <summary>
+        /// Rate limit manager
+        /// </summary>
+        public RateLimitManager RateLimitManager { get; }
     }
 }

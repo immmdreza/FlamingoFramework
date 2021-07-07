@@ -8,6 +8,8 @@ using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
+using Flamingo.RateLimiter;
+using Flamingo.RateLimiter.Limiters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +56,8 @@ namespace Flamingo
         private readonly InComingManager _inComingManager;
 
         private readonly InComingManager _inComingAwaitableManager;
+
+        private RateLimitManager _rateLimitManager;
 
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -421,6 +425,19 @@ namespace Flamingo
             _cancellationTokenSource.Cancel();
         }
 
+        private bool CheckLimiters<T>(T update)
+        {
+            if (!RateLimitManager.CheckAutoBuilders(update))
+            {
+                if (RateLimitManager.IsLimited(update))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <inheritdoc/>
         public async Task UpdateRedirector(Update update)
         {
@@ -428,6 +445,9 @@ namespace Flamingo
             {
                 case { Message: { } }:
                     {
+                        if (CheckLimiters(update.Message))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
                             new MessageCondiment(update.Message, this));
@@ -437,6 +457,9 @@ namespace Flamingo
 
                 case { ChannelPost: { } }:
                     {
+                        if (CheckLimiters(update.ChannelPost))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
                             new MessageCondiment(update.ChannelPost, this, true));
@@ -446,6 +469,9 @@ namespace Flamingo
 
                 case { EditedMessage: { } }:
                     {
+                        if (CheckLimiters(update.EditedMessage))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
                             new MessageCondiment(update.EditedMessage, this, isEdited: true));
@@ -455,6 +481,9 @@ namespace Flamingo
 
                 case { EditedChannelPost: { } }:
                     {
+                        if (CheckLimiters(update.EditedChannelPost))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
                             new MessageCondiment(update.EditedChannelPost, this, true, true));
@@ -464,6 +493,9 @@ namespace Flamingo
 
                 case { CallbackQuery: { } }:
                     {
+                        if (CheckLimiters(update.CallbackQuery))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingCallbackQueries,
                             new CallbackQueryCondiment(
@@ -474,6 +506,9 @@ namespace Flamingo
 
                 case { InlineQuery: { } }:
                     {
+                        if (CheckLimiters(update.InlineQuery))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingInlineQueries,
                             new InlineQueryCondiment(
@@ -484,6 +519,9 @@ namespace Flamingo
 
                 case { ChosenInlineResult: { } }:
                     {
+                        if (CheckLimiters(update.ChosenInlineResult))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingInlineResultChosen,
                             new ChosenInlineResultCondiment(
@@ -494,6 +532,9 @@ namespace Flamingo
 
                 case { ChatMember: { } }:
                     {
+                        if (CheckLimiters(update.ChatMember))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
@@ -504,6 +545,9 @@ namespace Flamingo
 
                 case { MyChatMember: { } }:
                     {
+                        if (CheckLimiters(update.MyChatMember))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
@@ -514,6 +558,9 @@ namespace Flamingo
 
                 case { Poll: { } }:
                     {
+                        if (CheckLimiters(update.Poll))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingPoll,
                             new PollCondiment(
@@ -524,6 +571,9 @@ namespace Flamingo
 
                 case { PollAnswer: { } }:
                     {
+                        if (CheckLimiters(update.PollAnswer))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingPollAnswer,
                             new PollAnswerCondiment(
@@ -534,6 +584,9 @@ namespace Flamingo
 
                 case { PreCheckoutQuery: { } }:
                     {
+                        if (CheckLimiters(update.PreCheckoutQuery))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingPreCheckoutQuery,
                             new PreCheckoutQueryCondiment(
@@ -544,6 +597,9 @@ namespace Flamingo
 
                 case { ShippingQuery: { } }:
                     {
+                        if (CheckLimiters(update.ShippingQuery))
+                            return;
+
                         await ProcessInComings(
                             _inComingManager.InComingShippingQuery,
                             new ShippingQueryCondiment(
@@ -668,6 +724,49 @@ namespace Flamingo
             var manger = _inComingAwaitableManager.GetInComingList<T>();
 
             _inComingAwaitableManager.SafeRemove(manger, groupedIn);
+        }
+
+        /// <inheritdoc/>
+        public RateLimitManager RateLimitManager
+        {
+            get
+            {
+                if (_rateLimitManager == null)
+                    _rateLimitManager = new RateLimitManager();
+
+                return _rateLimitManager;
+            }
+        }
+
+        /// <summary>
+        /// Add an auto limit builder to rate manager
+        /// </summary>
+        public bool AddAutoLimit<T, TResult>(AutoLimitBuilder<T, TResult> autoLimitBuilder)
+        {
+            return RateLimitManager.AddAutoLimit(autoLimitBuilder);
+        }
+
+        /// <summary>
+        /// Add an auto message sender limit to rate manager
+        /// </summary>
+        /// <param name="timeSpan">Time span to wait till next message</param>
+        /// /// <param name="waitForLimit">Block and wait for limit</param>
+        public bool AddAutoMessageSenderLimit(TimeSpan timeSpan, bool waitForLimit = false)
+        {
+            return AddAutoLimit(new AutoLimitBuilder<Message, User>(
+                    new MessageSenderLimiter(0, timeSpan, waitForLimit)));
+        }
+
+        /// <summary>
+        /// Add an auto callback query sender limit to rate manager
+        /// </summary>
+        /// <param name="timeSpan">Time span to wait till next message</param>
+        /// /// <param name="waitForLimit">Block and wait for limit</param>
+        public bool AddAutoCallbackQuerySenderLimit(
+            TimeSpan timeSpan, bool waitForLimit = false)
+        {
+            return AddAutoLimit(new AutoLimitBuilder<CallbackQuery, User>(
+                    new CallbackQuerySenderLimiter(timeSpan, waitForLimit)));
         }
 
         #endregion

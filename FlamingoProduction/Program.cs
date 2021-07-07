@@ -7,7 +7,6 @@ using Flamingo.Filters;
 using Flamingo.Filters.Enums;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
-using Flamingo.Fishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;
@@ -29,7 +28,8 @@ namespace FlamingoProduction
             var flamingo = await new FlamingoCore()
                 // - You can change callback data splitter char if you want (Optional)
                 //      This is used when making args
-                .InitBot("1820608649:AAG981uKed7_ZE-VrN4MzIYnvPuI1KCz7N8", callbackDataSpliter: '_');
+                .InitBot("1820608649:AAEe-VVWVCli08_YIg4hXjFvH38cuuFafH4",
+                    callbackDataSpliter: '_');
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -65,6 +65,15 @@ namespace FlamingoProduction
 
             Console.WriteLine(flamingo.BotInfo.FirstName);
 
+            // Limits message sender to 1 message per 3 seconds
+            // by passing true, the thread will be blocked till limit releases
+            // An the answer will be sent after ( Nothing ignored )
+            flamingo.AddAutoMessageSenderLimit(TimeSpan.FromSeconds(3), true);
+
+            // Limits callback query sender to 1 call per 5 seconds
+            // This limit just ignores calls that are sent in limited duration
+            flamingo.AddAutoCallbackQuerySenderLimit(TimeSpan.FromSeconds(5));
+
             // - Time to Fly!
             //      Call this method to start listening for updates!
             await flamingo.Fly(errorHandler: ImError);
@@ -85,7 +94,7 @@ namespace FlamingoProduction
         public static async Task<bool> NormalStart(ICondiment<Message> cdmt)
         {
             await cdmt.ReplyText($"Just Started!");
-            return true;
+            return false;
         }
 
         [InComingMessage(Group = 1)]
