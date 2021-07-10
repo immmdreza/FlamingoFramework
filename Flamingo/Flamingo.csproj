@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.25.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
     <PackageReference Include="Telegram.Bot" Version="16.0.0" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="0.2.0" />

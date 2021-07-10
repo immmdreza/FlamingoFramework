@@ -71,5 +71,13 @@ namespace Flamingo.Filters
         {
             return new FilterBase<T>(x => !a.IsPassed(x));
         }
+
+        /// <summary>
+        /// It is XOR operator
+        /// </summary>
+        public static FilterBase<T> operator ^(FilterBase<T> a, FilterBase<T> b)
+        {
+            return (a | b) & ~(a & b);
+        }
     }
 }

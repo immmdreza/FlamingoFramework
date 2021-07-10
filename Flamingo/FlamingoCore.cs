@@ -316,6 +316,7 @@ namespace Flamingo
                 _allowedUpdates.Add(updateType);
             }
         }
+        
         /// <inheritdoc/>
         public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish,
             int group = 0,

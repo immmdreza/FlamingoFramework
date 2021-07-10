@@ -26,5 +26,25 @@ namespace Flamingo.Filters.Tests
 
             Assert.IsFalse(filter.IsPassed("arash"));
         }
+
+        [TestMethod]
+        public void XOR_Test_1()
+        {
+            var a = new FilterBase<int>(x => x < 20);
+
+            var b = new FilterBase<int>(x => x < 10);
+
+            Assert.IsFalse((a ^ b).IsPassed(9));
+        }
+
+        [TestMethod]
+        public void XOR_Test_2()
+        {
+            var a = new FilterBase<int>(x => x < 20);
+
+            var b = new FilterBase<int>(x => x < 10);
+
+            Assert.IsTrue((a ^ b).IsPassed(15));
+        }
     }
 }
