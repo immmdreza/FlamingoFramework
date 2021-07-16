@@ -10,9 +10,11 @@ using Flamingo.Fishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
 using Flamingo.RateLimiter.Limiters;
+using Flamingo.RateLimiter.Limits;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -745,6 +747,24 @@ namespace Flamingo
         public bool AddAutoLimit<T, TResult>(AutoLimitBuilder<T, TResult> autoLimitBuilder)
         {
             return RateLimitManager.AddAutoLimit(autoLimitBuilder);
+        }
+
+        /// <summary>
+        /// Add a timed limit
+        /// </summary>
+        public bool AddTimedLimit<T, TResult>(
+            TResult limited,
+            Expression<Func<T, TResult>> selsctor,
+            TimeSpan duration,
+            bool waitForLimit = false,
+            Func<TResult, TResult, bool> comparer = null)
+        {
+            return RateLimitManager.AddLimit(
+                new BaseLimiter<T, TResult>(
+                    limited,
+                    selsctor,
+                    new TimeLimit(duration, waitForLimit),
+                    comparer));
         }
 
         /// <summary>
