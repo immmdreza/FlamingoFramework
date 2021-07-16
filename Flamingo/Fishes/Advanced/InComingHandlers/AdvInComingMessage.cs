@@ -1,7 +1,5 @@
 ﻿using Flamingo.Condiments;
 using Flamingo.Condiments.HotCondiments;
-using Flamingo.Filters;
-using Flamingo.Filters.Async;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,24 +7,11 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Flamingo.Fishes.InComingFishes
+namespace Flamingo.Fishes.Advanced.InComingHandlers
 {
-    /// <summary>
-    /// You can create your handler for <c>Message</c> by inheriting from this
-    /// </summary>
-    /// <remarks>This is also for: <c>EditedMessage</c>, <c>ChannlePost</c>, <c>EditedChannelPost</c></remarks>
-    public abstract class InComingMessage : InComingFish<Message>
+    public abstract class AdvInComingMessage : AdvInComingFish<Message>
     {
-        /// <summary>
-        /// You can create your handler for <c>Message</c> by inheriting from this
-        /// </summary>
-        /// <remarks>This is also for: <c>EditedMessage</c>, <c>ChannlePost</c>, <c>EditedChannelPost</c></remarks>
-        /// <param name="filter">Add your Optional sync filter based on incoming update</param>
-        /// <param name="filterAsync">Add your Optional async filter based on incoming update</param>
-        public InComingMessage(
-            IFilter<ICondiment<Message>> filter = null,
-            IFilterAsync<ICondiment<Message>> filterAsync = null) 
-            : base(filter, filterAsync)
+        public AdvInComingMessage() : base()
         { }
 
         /// <summary>

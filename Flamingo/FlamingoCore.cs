@@ -7,6 +7,7 @@ using Flamingo.Exceptions;
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
+using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
 using Flamingo.RateLimiter.Limiters;
@@ -318,7 +319,17 @@ namespace Flamingo
                 _allowedUpdates.Add(updateType);
             }
         }
-        
+
+        /// <inheritdoc/>
+        public void AddAdvancedInComing<T, U>(BaseCarrierFish<T, U> carrierFish,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>
+        {
+            AddInComing(carrierFish, group, isEdited, isChannelPost, isMine);
+        }
+
         /// <inheritdoc/>
         public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish,
             int group = 0,
@@ -370,9 +381,28 @@ namespace Flamingo
             return false;
         }
 
+        private void CheckAdvInComings<T>(IFish<T> fish)
+        {
+            var t = fish.GetType();
+
+            var interfaces = t.GetInterfaces();
+
+            var carrier = t.GetInterfaces().FirstOrDefault(x =>
+              x.IsGenericType &&
+              x.GetGenericTypeDefinition() == typeof(ICarrier<>));
+
+            if (carrier != null)
+            {
+                var m = carrier.GetMethod("SetupFish");
+
+                m.Invoke(fish, null);
+            }
+        }
+
         private async Task ProcessInComings<T>(
             SortedSet<GroupedInComing<T>> _inComingMessages,
-            ICondiment<T> condiment)
+            ICondiment<T> condiment,
+            Func<FlamingoCore, Exception, Task> errorHandler)
         {
             if (await ProcessAwaitables(condiment)) return;
 
@@ -381,9 +411,28 @@ namespace Flamingo
             {
                 if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
-                    if (!await inComing.InComingFish.GetEaten(condiment))
+                    CheckAdvInComings(inComing.InComingFish);
+
+                    try
                     {
-                        break;
+                        if (!await inComing.InComingFish.GetEaten(condiment))
+                        {
+                            break;
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        if(errorHandler != null)
+                        {
+                            await errorHandler(this, e);
+                        }
+                    }
+                    finally
+                    {
+                        if(inComing.InComingFish is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                        }
                     }
                 }
             }
@@ -442,7 +491,9 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public async Task UpdateRedirector(Update update)
+        public async Task UpdateRedirector(
+            Update update,
+            Func<FlamingoCore, Exception, Task> errorHandler = null)
         {
             switch (update)
             {
@@ -453,7 +504,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.Message, this));
+                            new MessageCondiment(update.Message, this),
+                            errorHandler);
 
                         break;
                     }
@@ -465,7 +517,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.ChannelPost, this, true));
+                            new MessageCondiment(update.ChannelPost, this, true),
+                            errorHandler);
 
                         break;
                     }
@@ -477,7 +530,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.EditedMessage, this, isEdited: true));
+                            new MessageCondiment(update.EditedMessage, this, isEdited: true),
+                            errorHandler);
 
                         break;
                     }
@@ -489,7 +543,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.EditedChannelPost, this, true, true));
+                            new MessageCondiment(update.EditedChannelPost, this, true, true),
+                            errorHandler);
 
                         break;
                     }
@@ -502,7 +557,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingCallbackQueries,
                             new CallbackQueryCondiment(
-                                update.CallbackQuery, this, _callbackDataSpliter));
+                                update.CallbackQuery, this, _callbackDataSpliter),
+                            errorHandler);
 
                         break;
                     }
@@ -515,7 +571,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingInlineQueries,
                             new InlineQueryCondiment(
-                                update.InlineQuery, this));
+                                update.InlineQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -528,7 +585,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingInlineResultChosen,
                             new ChosenInlineResultCondiment(
-                                update.ChosenInlineResult, this));
+                                update.ChosenInlineResult, this),
+                            errorHandler);
 
                         break;
                     }
@@ -541,7 +599,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
-                                update.ChatMember, this, false));
+                                update.ChatMember, this, false),
+                            errorHandler);
 
                         break;
                     }
@@ -554,7 +613,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
-                                update.MyChatMember, this, true));
+                                update.MyChatMember, this, true),
+                            errorHandler);
 
                         break;
                     }
@@ -567,7 +627,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPoll,
                             new PollCondiment(
-                                update.Poll, this));
+                                update.Poll, this),
+                            errorHandler);
 
                         break;
                     }
@@ -580,7 +641,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPollAnswer,
                             new PollAnswerCondiment(
-                                update.PollAnswer, this));
+                                update.PollAnswer, this),
+                            errorHandler);
 
                         break;
                     }
@@ -593,7 +655,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPreCheckoutQuery,
                             new PreCheckoutQueryCondiment(
-                                update.PreCheckoutQuery, this));
+                                update.PreCheckoutQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -606,7 +669,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingShippingQuery,
                             new ShippingQueryCondiment(
-                                update.ShippingQuery, this));
+                                update.ShippingQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -662,7 +726,7 @@ namespace Flamingo
                         {
                             try
                             {
-                                await UpdateRedirector(update);
+                                await UpdateRedirector(update, errorHandler);
                             }
                             catch (Exception e)
                             {
@@ -768,7 +832,7 @@ namespace Flamingo
         }
 
         /// <summary>
-        /// Add an auto message sender limit to rate manager
+        /// Add an auto message sender limit to rate manager advanced
         /// </summary>
         /// <param name="timeSpan">Time span to wait till next message</param>
         /// /// <param name="waitForLimit">Block and wait for limit</param>

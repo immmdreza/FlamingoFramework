@@ -7,10 +7,13 @@ using Flamingo.Filters;
 using Flamingo.Filters.Enums;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
+using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
+using FlamingoProduction.Database;
+using FlamingoProduction.MyAdvInComings;
 using FlamingoProduction.MyInComings;
 using System;
 using System.Collections.Generic;
@@ -25,11 +28,7 @@ namespace FlamingoProduction
         static async Task Main()
         {
             // Create "FlamingoCore" instance and user "InitBot" to initialize you bot!
-            var flamingo = await new FlamingoCore()
-                // - You can change callback data splitter char if you want (Optional)
-                //      This is used when making args
-                .InitBot("1820608649:AAEe-VVWVCli08_YIg4hXjFvH38cuuFafH4",
-                    callbackDataSpliter: '_');
+            var flamingo = new FlamingoCore();
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -63,8 +62,6 @@ namespace FlamingoProduction
 
             flamingo.AddInComing(simpleInComingCallback);
 
-            Console.WriteLine(flamingo.BotInfo.FirstName);
-
             // Limits message sender to 1 message per 3 seconds
             // by passing true, the thread will be blocked till limit releases
             // An the answer will be sent after ( Nothing ignored )
@@ -73,6 +70,30 @@ namespace FlamingoProduction
             // Limits callback query sender to 1 call per 5 seconds
             // This limit just ignores calls that are sent in limited duration
             flamingo.AddAutoCallbackQuerySenderLimit(TimeSpan.FromSeconds(5));
+
+
+            // Work with advanced handlers
+            var myAdvCarrier1 = new MessageCarrierFish<GetDataFromBaseHandler>
+                (new CommandFilter("count"));
+
+            myAdvCarrier1.Carrier.Require<FlamingoContext>();
+
+            flamingo.AddAdvancedInComing(myAdvCarrier1);
+
+            var myAdvCarrier2 = new MessageCarrierFish<InsertLocalUserHandler>
+                (new CommandFilter("add"));
+
+            myAdvCarrier2.Carrier.Require<FlamingoContext>();
+
+            flamingo.AddAdvancedInComing(myAdvCarrier2);
+
+
+            // - You can change callback data splitter char if you want (Optional)
+            //      This is used when making args
+            await flamingo.InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8",
+                callbackDataSpliter: '_');
+
+            Console.WriteLine(flamingo.BotInfo.FirstName);
 
             // - Time to Fly!
             //      Call this method to start listening for updates!

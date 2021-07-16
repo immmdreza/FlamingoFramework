@@ -1,5 +1,6 @@
 ﻿using Flamingo.Condiments;
 using Flamingo.Fishes;
+using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
@@ -76,6 +77,21 @@ namespace Flamingo
             bool isEdited = false,
             bool isChannelPost = false,
             bool isMine = false);
+
+        /// <summary>
+        /// Add your advanced inComings (handlers) to the Flamingo 🦩
+        /// </summary>
+        /// <typeparam name="T">Type of inComing update</typeparam>
+        /// <param name="carrierFish">Carrier of incoming handler</param>
+        /// <param name="group">Process group number. (Lower group processes sooner)</param>
+        /// <param name="isEdited">(For Messages only) if it's for edited messages</param>
+        /// <param name="isChannelPost">(For Messages only) if it's for channel messages</param>
+        /// <param name="isMine">(For ChatMemberUpdated only) is it's MyChatMember</param>
+        public void AddAdvancedInComing<T, U>(BaseCarrierFish<T, U> carrierFish,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>;
 
         /// <summary>
         /// (Not recommended) If you are not using <see cref="WaitForInComing{T}(IFisherAwaits{T})"/> 
@@ -199,7 +215,7 @@ namespace Flamingo
         /// from Polling extension.
         /// </remarks>
         /// <param name="update">Update you want to process</param>
-        Task UpdateRedirector(Update update);
+        Task UpdateRedirector(Update update, Func<FlamingoCore, Exception, Task> errorHandler = null);
 
         /// <summary>
         /// Waits for a await-able incoming handler ( <see cref="SimpleAwaitableInComing{T}"/> )
