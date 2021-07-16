@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base abstract class for Filter Attribute that works on Messages
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class MessageFiltersAttribute : Attribute, IFilterAttribute<Message>
     {
         /// <summary>

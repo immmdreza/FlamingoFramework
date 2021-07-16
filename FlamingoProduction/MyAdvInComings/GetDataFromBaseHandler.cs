@@ -8,7 +8,7 @@ namespace FlamingoProduction.MyAdvInComings
 {
     public class GetDataFromBaseHandler: AdvInComingMessage
     {
-        private FlamingoContext _flamingoContext;
+        private readonly FlamingoContext _flamingoContext;
 
         public GetDataFromBaseHandler(FlamingoContext flamingoContext)
         {

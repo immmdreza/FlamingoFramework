@@ -76,14 +76,13 @@ namespace FlamingoProduction
             var myAdvCarrier1 = new MessageCarrierFish<GetDataFromBaseHandler>
                 (new CommandFilter("count"));
 
+            // Use this if you didn't use [AdvancedHandlerConstructor]
             myAdvCarrier1.Carrier.Require<FlamingoContext>();
 
             flamingo.AddAdvancedInComing(myAdvCarrier1);
 
-            var myAdvCarrier2 = new MessageCarrierFish<InsertLocalUserHandler>
-                (new CommandFilter("add"));
-
-            myAdvCarrier2.Carrier.Require<FlamingoContext>();
+            // Filters are also passed using attributes in class definition
+            var myAdvCarrier2 = new MessageCarrierFish<InsertLocalUserHandler>();
 
             flamingo.AddAdvancedInComing(myAdvCarrier2);
 

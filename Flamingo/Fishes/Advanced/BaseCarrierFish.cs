@@ -1,7 +1,10 @@
-﻿using Flamingo.Condiments;
+﻿using Flamingo.Attributes.Filters;
+using Flamingo.Attributes.Filters.Async;
+using Flamingo.Condiments;
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Flamingo.Fishes.Advanced
@@ -12,12 +15,48 @@ namespace Flamingo.Fishes.Advanced
         IAdvFish<T> where U: IAdvFish<T>
     {
         public BaseCarrierFish(Carrier<U> carrier,
-            IFilter<ICondiment<T>> filter,
-            IFilterAsync<ICondiment<T>> filterAsync)
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null)
         {
             Carrier = carrier;
-            Filter = filter;
-            FilterAsync = filterAsync;
+
+            var attr = typeof(U).GetCustomAttributes(false);
+
+            if(filter == null)
+            {
+                if (!attr.Any())
+                    return;
+
+                var filters = attr
+                    .Where(x => x is IFilterAttribute<T>)
+                    .Cast<IFilterAttribute<T>>()
+                    .Select(x => x.Filter)
+                    .ToList();
+
+                Filter = FilterBase<ICondiment<T>>.Combine(filters);
+            }
+            else
+            {
+                Filter = filter;
+            }
+
+            if(filterAsync == null)
+            {
+                if (!attr.Any())
+                    return;
+
+                var asyncFilters = attr
+                    .Where(x => x is IFilterAsyncAttribute<T>)
+                    .Cast<IFilterAsyncAttribute<T>>()
+                    .Select(x => x.Filter)
+                    .ToList();
+
+                FilterAsync = FilterBaseAsync<ICondiment<T>>.Combine(asyncFilters);
+            }
+            else
+            {
+                FilterAsync = filterAsync;
+            } 
         }
 
         /// <inheritdoc/>

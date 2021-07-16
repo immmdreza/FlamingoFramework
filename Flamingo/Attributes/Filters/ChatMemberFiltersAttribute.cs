@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for Chat member updates
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class ChatMemberFiltersAttribute : Attribute,
         IFilterAttribute<ChatMemberUpdated>
     {

@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for in-line queries
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class InlineQueryFiltersAttribute : Attribute, IFilterAttribute<InlineQuery>
     {
         /// <summary>

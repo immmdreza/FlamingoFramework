@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for polls
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class PollFiltersAttribute : Attribute, IFilterAttribute<Poll>
     {
         /// <summary>

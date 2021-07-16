@@ -1,4 +1,6 @@
-﻿using Flamingo.Fishes.Advanced.InComingHandlers;
+﻿using Flamingo.Attributes.Filters.Messages;
+using Flamingo.Fishes.Advanced.Attributes;
+using Flamingo.Fishes.Advanced.InComingHandlers;
 using FlamingoProduction.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -6,10 +8,12 @@ using Telegram.Bot.Types;
 
 namespace FlamingoProduction.MyAdvInComings
 {
+    [CommandFilter("add")]
     public class InsertLocalUserHandler: AdvInComingMessage
     {
-        private FlamingoContext _flamingoContext;
+        private readonly FlamingoContext _flamingoContext;
 
+        [AdvancedHandlerConstructor]
         public InsertLocalUserHandler(FlamingoContext flamingoContext)
         {
             _flamingoContext = flamingoContext;
