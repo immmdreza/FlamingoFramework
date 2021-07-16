@@ -28,7 +28,19 @@ namespace FlamingoProduction
         static async Task Main()
         {
             // Create "FlamingoCore" instance and user "InitBot" to initialize you bot!
-            var flamingo = new FlamingoCore();
+            await new FlamingoCore()
+                .Config(ConfigFlaminog)
+                .InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8", true)
+                // - Time to Fly!
+                //      Call this method to start listening for updates!
+                .Fly(errorHandler: ImError);
+        }
+
+        static void ConfigFlaminog(FlamingoCore flamingo)
+        {
+            // - You can change callback data splitter char if you want (Optional)
+            //      This is used when making args
+            flamingo.SetCallbackDataSpliter('_');
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -73,35 +85,18 @@ namespace FlamingoProduction
 
 
             // Work with advanced handlers
-            var myAdvCarrier1 = new MessageCarrierFish<GetDataFromBaseHandler>
-                (new CommandFilter("count"));
+            // Filters can be added when creating incoming handler class as attributes
+            var carrier = flamingo.AddAdvancedInComing<Message, GetDataFromBaseHandler>(
+                new CommandFilter("count"));
 
             // Use this if you didn't use [AdvancedHandlerConstructor]
-            myAdvCarrier1.Carrier.Require<FlamingoContext>();
-
-            flamingo.AddAdvancedInComing(myAdvCarrier1);
+            // on GetDataFromBaseHandler constructor
+            carrier.Require<FlamingoContext>();
 
             // Filters are also passed using attributes in class definition
-            var myAdvCarrier2 = new MessageCarrierFish<InsertLocalUserHandler>();
+            flamingo.AddAdvancedInComing<Message, InsertLocalUserHandler>();
+        }
 
-            flamingo.AddAdvancedInComing(myAdvCarrier2);
-
-
-            // - You can change callback data splitter char if you want (Optional)
-            //      This is used when making args
-            await flamingo.InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8",
-                callbackDataSpliter: '_');
-
-            Console.WriteLine(flamingo.BotInfo.FirstName);
-
-            // - Time to Fly!
-            //      Call this method to start listening for updates!
-            await flamingo.Fly(errorHandler: ImError);
-            //                               ^
-            //                               |_ Error handler method!
-        }   //                                                      |
-        // ________________________________________________________<|
-        // v
         // Setup your error handler.
         private static Task ImError(FlamingoCore _, Exception e)
         {

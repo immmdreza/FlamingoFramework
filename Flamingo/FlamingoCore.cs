@@ -8,6 +8,7 @@ using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
+using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
 using Flamingo.RateLimiter.Limiters;
@@ -92,10 +93,18 @@ namespace Flamingo
             Console.WriteLine($"{found} Attributed inComing found!");
         }
 
-        /// <inheritdoc/>
-        public async Task<FlamingoCore> InitBot(string botToken, char callbackDataSpliter = '_')
+        /// <summary>
+        /// You can add configurations here
+        /// </summary>
+        public FlamingoCore Config(Action<FlamingoCore> action)
         {
-            _callbackDataSpliter = callbackDataSpliter;
+            action(this);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public async Task<FlamingoCore> InitBot(string botToken)
+        {
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
             _botInfo = await _botClient.GetMeAsync();
 
@@ -103,9 +112,8 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public FlamingoCore InitBot(string botToken, bool getMe, char callbackDataSpliter = '_')
+        public FlamingoCore InitBot(string botToken, bool getMe)
         {
-            _callbackDataSpliter = callbackDataSpliter;
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
 
             if (getMe)
@@ -118,6 +126,13 @@ namespace Flamingo
         public async Task<FlamingoCore> SetBotInfo()
         {
             _botInfo = await _botClient.GetMeAsync();
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public FlamingoCore SetCallbackDataSpliter(char callbackDataSpliter = '_')
+        {
+            _callbackDataSpliter = callbackDataSpliter;
             return this;
         }
 
@@ -328,6 +343,24 @@ namespace Flamingo
             bool isMine = false) where U : IAdvFish<T>
         {
             AddInComing(carrierFish, group, isEdited, isChannelPost, isMine);
+        }
+
+        /// <inheritdoc/>
+        public Carrier<U> AddAdvancedInComing<T, U>(
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>
+        {
+            var carrier = new BaseCarrierFish<T, U>(
+                new Carrier<U>(),
+                filter,
+                filterAsync);
+
+            AddInComing(carrier, group, isEdited, isChannelPost, isMine);
+            return carrier.Carrier;
         }
 
         /// <inheritdoc/>

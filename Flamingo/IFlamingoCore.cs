@@ -1,4 +1,6 @@
 ﻿using Flamingo.Condiments;
+using Flamingo.Filters;
+using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Awaitables;
@@ -46,6 +48,12 @@ namespace Flamingo
         void AddAllowedUpdateType(UpdateType updateType);
 
         /// <summary>
+        /// This is used when splitting callback query data
+        /// </summary>
+        /// <param name="callbackDataSpliter"></param>
+        public FlamingoCore SetCallbackDataSpliter(char callbackDataSpliter = '_');
+
+        /// <summary>
         /// Add your inComings (handlers) to the Flamingo 🦩
         /// </summary>
         /// <remarks>
@@ -82,12 +90,33 @@ namespace Flamingo
         /// Add your advanced inComings (handlers) to the Flamingo 🦩
         /// </summary>
         /// <typeparam name="T">Type of inComing update</typeparam>
+        /// <typeparam name="U">This is you incoming handler</typeparam>
         /// <param name="carrierFish">Carrier of incoming handler</param>
         /// <param name="group">Process group number. (Lower group processes sooner)</param>
         /// <param name="isEdited">(For Messages only) if it's for edited messages</param>
         /// <param name="isChannelPost">(For Messages only) if it's for channel messages</param>
         /// <param name="isMine">(For ChatMemberUpdated only) is it's MyChatMember</param>
         public void AddAdvancedInComing<T, U>(BaseCarrierFish<T, U> carrierFish,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>;
+
+        /// <summary>
+        /// Add an advanced incoming handler to the flamingo
+        /// </summary>
+        /// <typeparam name="T">This is incoming update type</typeparam>
+        /// <typeparam name="U">This is you incoming handler</typeparam>
+        /// <param name="filter">sync filter</param>
+        /// <param name="filterAsync">async filter</param>
+        /// <param name="group">handling group of this handler</param>
+        /// <param name="isEdited">if it's an edited message</param>
+        /// <param name="isChannelPost">if it's a channel post</param>
+        /// <param name="isMine">if it's my chat member</param>
+        /// <returns>The carrier to add requirements if needed!</returns>
+        public Carrier<U> AddAdvancedInComing<T, U>(
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null,
             int group = 0,
             bool isEdited = false,
             bool isChannelPost = false,
@@ -120,21 +149,18 @@ namespace Flamingo
         /// Initialize your bot!
         /// </summary>
         /// <param name="botToken">Bot token from @BotFather!</param>
-        /// <param name="callbackDataSpliter">char that uses to split call back data</param>
         /// <param name="getMe">If you don't like to fill bot user info here</param>
         /// <returns>The flamingo core instance itself</returns>
         FlamingoCore InitBot(
             string botToken,
-            bool getMe = false,
-            char callbackDataSpliter = '_');
+            bool getMe = false);
 
         /// <summary>
         /// Initialize your bot!
         /// </summary>
         /// <param name="botToken">Bot token from @BotFather!</param>
-        /// <param name="callbackDataSpliter">char that uses to split call back data</param>
         /// <returns>The flamingo core instance itself</returns>
-        Task<FlamingoCore> InitBot(string botToken, char callbackDataSpliter = '_');
+        Task<FlamingoCore> InitBot(string botToken);
 
         /// <summary>
         /// Wanna go even deeper? This is used when you have your own update receiver
