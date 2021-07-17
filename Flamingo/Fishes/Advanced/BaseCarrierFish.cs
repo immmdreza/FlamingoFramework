@@ -14,11 +14,10 @@ namespace Flamingo.Fishes.Advanced
         ICarrier<U>, 
         IAdvFish<T> where U: IAdvFish<T>
     {
-        public BaseCarrierFish(Carrier<U> carrier,
-            IFilter<ICondiment<T>> filter = null,
+        public BaseCarrierFish(IFilter<ICondiment<T>> filter = null,
             IFilterAsync<ICondiment<T>> filterAsync = null)
         {
-            Carrier = carrier;
+            Carrier = new Carrier<U>();
 
             var attr = typeof(U).GetCustomAttributes(false);
 

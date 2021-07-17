@@ -8,6 +8,7 @@ using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
+using Flamingo.Fishes.Advanced.Attributes;
 using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
@@ -355,7 +356,6 @@ namespace Flamingo
             bool isMine = false) where U : IAdvFish<T>
         {
             var carrier = new BaseCarrierFish<T, U>(
-                new Carrier<U>(),
                 filter,
                 filterAsync);
 
@@ -885,6 +885,168 @@ namespace Flamingo
         {
             return AddAutoLimit(new AutoLimitBuilder<CallbackQuery, User>(
                     new CallbackQuerySenderLimiter(timeSpan, waitForLimit)));
+        }
+
+        private void AddFishObj(object obj,
+            Type type,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false)
+        {
+            var updateType = Extensions.AsUpdateType(
+                type, isEdited, isChannelPost, isMine);
+
+            switch (updateType)
+            {
+                case UpdateType.Message:
+                case UpdateType.EditedMessage:
+                case UpdateType.ChannelPost:
+                case UpdateType.EditedChannelPost:
+                    AddInComing(obj as IFish<Message>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ChatMember:
+                case UpdateType.MyChatMember:
+                    AddInComing(obj as IFish<ChatMemberUpdated>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.InlineQuery:
+                    AddInComing(obj as IFish<InlineQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ChosenInlineResult:
+                    AddInComing(obj as IFish<ChosenInlineResult>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.CallbackQuery:
+                    AddInComing(obj as IFish<CallbackQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ShippingQuery:
+                    AddInComing(obj as IFish<ShippingQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.PreCheckoutQuery:
+                    AddInComing(obj as IFish<PreCheckoutQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.Poll:
+                    AddInComing(obj as IFish<Poll>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.PollAnswer:
+                    AddInComing(obj as IFish<PollAnswer>, group, isEdited, isChannelPost, isMine);
+                    break;
+            }
+        }
+
+        public FlamingoCore AutoAddInComings(bool notify = false)
+        {
+            var entry = Assembly.GetEntryAssembly();
+
+            var name = entry.GetName().Name;
+
+            var inComingsNamespace = name + ".InComings";
+
+            var typesNamespaces = new Dictionary<Type, string>
+            {
+                {typeof(Message), inComingsNamespace + ".Messages" },
+                {typeof(CallbackQuery), inComingsNamespace + ".CallbackQueries" },
+                {typeof(InlineQuery), inComingsNamespace + ".InlineQueries" },
+                {typeof(ChosenInlineResult), inComingsNamespace + ".ChosenInlineResults" },
+                {typeof(ChatMemberUpdated), inComingsNamespace + ".ChatMemberUpdates" },
+                {typeof(Poll), inComingsNamespace + ".Polls" },
+                {typeof(PollAnswer), inComingsNamespace + ".PollAnswers" },
+                {typeof(ShippingQuery), inComingsNamespace + ".ShippingQueries" },
+                {typeof(PreCheckoutQuery), inComingsNamespace + ".PreCheckoutQueries" }
+            };
+
+            var types = entry.GetTypes();
+
+            var c1 = typeof(BaseCarrierFish<,>);
+
+            foreach (var ns in typesNamespaces)
+            {
+                var handlers = types.Where(
+                    x => x.Namespace == ns.Value && x.IsClass && x.IsPublic);
+
+                if (!handlers.Any())
+                    continue;
+
+                foreach (var handler in handlers)
+                {
+                    var attrs = handler.GetCustomAttributes();
+
+                    bool edited = false;
+                    bool channelPost = false;
+                    bool mine = false;
+                    int group = 0;
+
+                    foreach (var attr in attrs)
+                    {
+                        if (attr is HandlingGroupAttribute groupAttribute)
+                        {
+                            group = groupAttribute.Group;
+                            continue;
+                        }
+
+                        if (ns.Key == typeof(Message))
+                        {
+                            if (attr is IsEditedMessageAttribute)
+                            {
+                                edited = true;
+                                continue;
+                            }
+
+                            if (attr is IsChannelPostAttribute)
+                            {
+                                channelPost = true;
+                                continue;
+                            }
+                        }
+
+                        if (attr is IsMyChatMemberAttribute)
+                        {
+                            mine = true;
+                            continue;
+                        }
+                    }
+
+                    var interfaces = handler.GetInterfaces();
+                    var advFish = interfaces.FirstOrDefault(x =>
+                      x.IsGenericType &&
+                      x.GetGenericTypeDefinition() == typeof(IAdvFish<>));
+
+                    if(advFish != null)
+                    {
+                        var gArgs = advFish.GetGenericArguments();
+                        if(gArgs[0] == ns.Key)
+                        {
+                            var c2 = c1.MakeGenericType(ns.Key, handler);
+
+                            var carrier = Activator.CreateInstance(c2, 
+                                args: new object[] { null, null });
+
+                            AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
+                            Console.WriteLine($"Added advanced incoming: '{handler.Name}' from '{ns.Value}'\n" +
+                            $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
+                            continue;
+                        }
+                    }
+
+                    var fish = interfaces.FirstOrDefault(x =>
+                      x.IsGenericType &&
+                      x.GetGenericTypeDefinition() == typeof(IFish<>));
+
+                    if (fish != null)
+                    {
+                        if (handler.GetConstructor(Array.Empty<Type>()) is ConstructorInfo constructor)
+                        {
+                            var carrier = constructor.Invoke(Array.Empty<object>());
+
+                            AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
+                            Console.WriteLine($"Added incoming: '{handler.Name}' from '{ns.Value}'\n" +
+                                $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            return this;
         }
 
         #endregion

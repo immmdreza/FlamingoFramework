@@ -1,4 +1,5 @@
 ﻿using Flamingo.Exceptions;
+using System;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.Payments;
@@ -21,6 +22,19 @@ namespace Flamingo
         {
             var type = typeof(T);
 
+            return AsUpdateType(type, isEdited, isChannelPost, isMine);
+        }
+
+        /// <summary>
+        /// Finds out <see cref="UpdateType"/>
+        /// </summary>
+        /// <typeparam name="T">Update type</typeparam>
+        public static UpdateType AsUpdateType(
+            Type type,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false)
+        {
             if (type == typeof(Message))
             {
                 if (isChannelPost)
@@ -46,7 +60,8 @@ namespace Flamingo
             else if (type == typeof(PollAnswer)) return UpdateType.PollAnswer;
             else if (type == typeof(ShippingQuery)) return UpdateType.ShippingQuery;
             else if (type == typeof(PreCheckoutQuery)) return UpdateType.PreCheckoutQuery;
-            else throw new NotAnUpdateTypeException<T>();
+
+            else throw new NotAnUpdateTypeException(type);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Flamingo.Fishes.Advanced.CarrierFishes
         public MessageCarrierFish(
             IFilter<ICondiment<Message>> filter = null,
             IFilterAsync<ICondiment<Message>> filterAsync = null) 
-            : base(new Carrier<T>(), filter, filterAsync)
+            : base(filter, filterAsync)
         { }
     }
 }

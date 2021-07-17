@@ -11,7 +11,6 @@ namespace Flamingo
         /// <summary>
         /// Shows an handler group
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         public GroupedInComing(IFish<T> inComingFish, int handlingGroup)
         {
             InComingFish = inComingFish;
