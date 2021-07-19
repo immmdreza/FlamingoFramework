@@ -114,9 +114,12 @@ namespace Flamingo.Fishes.Advanced
                 {
                     if(_mainObj != null)
                     {
-                        foreach (var req in _requirements)
+                        if (_requirements != null)
                         {
-                            req.Dispose();
+                            foreach (var req in _requirements)
+                            {
+                                req.Dispose();
+                            }
                         }
 
                         if(_mainObj is IDisposable disposable)

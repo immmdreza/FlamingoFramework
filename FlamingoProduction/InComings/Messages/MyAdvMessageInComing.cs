@@ -1,31 +1,37 @@
 ﻿using Flamingo.Attributes.Filters.Messages;
-using Flamingo.Fishes.Advanced.Attributes;
 using Flamingo.Fishes.Advanced.InComingHandlers;
-using FlamingoProduction.Database;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+using Flamingo.Fishes.Awaitables.FillFormHelper;
+using Flamingo.Helpers.Types.Enums;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace FlamingoProduction.InComings.Messages
 {
-    [HandlingGroup(Group = 1)]
-    [CommandFilter("test2")]
-    public class MyAdvMessageInComing: AdvInComingMessage
+    public class UserDataForm
     {
-        private readonly FlamingoContext _flamingoContext;
-
-        [AdvancedHandlerConstructor]
-        public MyAdvMessageInComing(FlamingoContext flamingoContext)
+        [FlamingoFormConstructor]
+        public UserDataForm(
+            [FlamingoFormData] string name,
+            [FlamingoFormData] string lastName,
+            [FlamingoFormData(InvalidTypeText = "Please enter a numeric value")] int code)
         {
-            _flamingoContext = flamingoContext;
+            FullName = name + " " + lastName + $" ({code})";
         }
 
+        public string FullName { get; }
+    }
+
+    [CommandFilter("form")]
+    [ChatTypeFilter(FlamingoChatType.Private)]
+    public class MyAdvMessageInComing: AdvInComingMessage
+    {
         protected override async Task GetEatenWrapper(Message inComing)
         {
-            var users = await _flamingoContext.LocalUsers.ToListAsync();
+            var filler = new FillFormRequest<UserDataForm>(Flamingo);
 
-            await ReplyText(string.Join("\n", users.Select(x=> x.TelegramId.ToString())));
+            await filler.Ask(Sender.Id, 1);
+
+            await ReplyText(filler.Instance.FullName);
         }
     }
 }

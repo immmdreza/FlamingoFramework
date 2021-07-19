@@ -128,6 +128,44 @@ namespace Flamingo.Helpers
                 output = default;
                 return false;
             }
+            catch (ArgumentException)
+            {
+                output = default;
+                return false;
+            }
+            catch (NotSupportedException)
+            {
+                output = default;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to convert a string to a given type
+        /// </summary>
+        /// <param name="type">Should convert to this</param>
+        /// <param name="input">Input string to convert</param>
+        /// <param name="output">Output result</param>
+        /// <returns></returns>
+        public static bool TryConvert(this string input, Type type, out object output)
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(type);
+                if (converter != null)
+                {
+                    output = converter.ConvertFromString(input);
+                    return true;
+                }
+
+                output = default;
+                return false;
+            }
+            catch(ArgumentException)
+            {
+                output = default;
+                return false;
+            }
             catch (NotSupportedException)
             {
                 output = default;
