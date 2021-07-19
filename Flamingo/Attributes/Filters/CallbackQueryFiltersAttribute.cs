@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for callback queries
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class CallbackQueryFiltersAttribute : Attribute, IFilterAttribute<CallbackQuery>
     {
         /// <summary>

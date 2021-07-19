@@ -7,10 +7,13 @@ using Flamingo.Filters;
 using Flamingo.Filters.Enums;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
+using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
+using FlamingoProduction.Database;
+using FlamingoProduction.MyAdvInComings;
 using FlamingoProduction.MyInComings;
 using System;
 using System.Collections.Generic;
@@ -25,11 +28,21 @@ namespace FlamingoProduction
         static async Task Main()
         {
             // Create "FlamingoCore" instance and user "InitBot" to initialize you bot!
-            var flamingo = await new FlamingoCore()
-                // - You can change callback data splitter char if you want (Optional)
-                //      This is used when making args
-                .InitBot("1820608649:AAEe-VVWVCli08_YIg4hXjFvH38cuuFafH4",
-                    callbackDataSpliter: '_');
+            await new FlamingoCore()
+                .AutoAddInComings()
+
+                .Config(ConfigFlaminog)
+                .InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8", true)
+                // - Time to Fly!
+                //      Call this method to start listening for updates!
+                .Fly(errorHandler: ImError);
+        }
+
+        static void ConfigFlaminog(FlamingoCore flamingo)
+        {
+            // - You can change callback data splitter char if you want (Optional)
+            //      This is used when making args
+            flamingo.SetCallbackDataSpliter('_');
 
             // - Use classes you created as handlers by Inheriting from "InComingBase" classes!
             //      And enjoy tools and extensions we provide there!
@@ -63,8 +76,6 @@ namespace FlamingoProduction
 
             flamingo.AddInComing(simpleInComingCallback);
 
-            Console.WriteLine(flamingo.BotInfo.FirstName);
-
             // Limits message sender to 1 message per 3 seconds
             // by passing true, the thread will be blocked till limit releases
             // An the answer will be sent after ( Nothing ignored )
@@ -74,14 +85,20 @@ namespace FlamingoProduction
             // This limit just ignores calls that are sent in limited duration
             flamingo.AddAutoCallbackQuerySenderLimit(TimeSpan.FromSeconds(5));
 
-            // - Time to Fly!
-            //      Call this method to start listening for updates!
-            await flamingo.Fly(errorHandler: ImError);
-            //                               ^
-            //                               |_ Error handler method!
-        }   //                                                      |
-        // ________________________________________________________<|
-        // v
+
+            // Work with advanced handlers
+            // Filters can be added when creating incoming handler class as attributes
+            var carrier = flamingo.AddAdvancedInComing<Message, GetDataFromBaseHandler>(
+                new CommandFilter("count"));
+
+            // Use this if you didn't use [AdvancedHandlerConstructor]
+            // on GetDataFromBaseHandler constructor
+            carrier.Require<FlamingoContext>();
+
+            // Filters are also passed using attributes in class definition
+            flamingo.AddAdvancedInComing<Message, InsertLocalUserHandler>();
+        }
+
         // Setup your error handler.
         private static Task ImError(FlamingoCore _, Exception e)
         {

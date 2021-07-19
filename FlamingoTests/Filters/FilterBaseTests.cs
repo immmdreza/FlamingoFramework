@@ -1,9 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Flamingo.Filters;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Telegram.Bot.Types;
 
 namespace Flamingo.Filters.Tests
 {

@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunFlamingo", "FunFlamingo\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepLinkingFlamingo", "DeepLinkingFlamingo\DeepLinkingFlamingo.csproj", "{E1C3EA20-6740-488E-B440-AC1425C28B93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardsFlamingo", "KeyboardsFlamingo\KeyboardsFlamingo.csproj", "{A4B1483D-1A3F-471B-A2E7-AC5FFAA3E6FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeyboardsFlamingo", "KeyboardsFlamingo\KeyboardsFlamingo.csproj", "{A4B1483D-1A3F-471B-A2E7-AC5FFAA3E6FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

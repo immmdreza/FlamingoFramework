@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for shipping queries
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class ShippingQueryFiltersAttribute : Attribute, IFilterAttribute<ShippingQuery>
     {
         /// <summary>

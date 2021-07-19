@@ -7,7 +7,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for pre-checkout queries
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class PreCheckoutQueryFiltersAttribute : Attribute, IFilterAttribute<PreCheckoutQuery>
     {
         /// <summary>

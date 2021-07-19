@@ -8,7 +8,7 @@ namespace Flamingo.Attributes.Filters
     /// <summary>
     /// Base class to build filter attributes for chosen in-line results
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public abstract class ChosenInlineResultFiltersAttribute : Attribute, IFilterAttribute<ChosenInlineResult>
     {
         /// <summary>

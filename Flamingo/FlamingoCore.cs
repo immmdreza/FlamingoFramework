@@ -7,12 +7,17 @@ using Flamingo.Exceptions;
 using Flamingo.Filters;
 using Flamingo.Filters.Async;
 using Flamingo.Fishes;
+using Flamingo.Fishes.Advanced;
+using Flamingo.Fishes.Advanced.Attributes;
+using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
 using Flamingo.RateLimiter.Limiters;
+using Flamingo.RateLimiter.Limits;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -85,14 +90,23 @@ namespace Flamingo
             _cancellationTokenSource = new CancellationTokenSource();
             _allowedUpdates = new List<UpdateType>();
 
+            _callbackDataSpliter = '_';
             var found = AddAttributedInComings();
             Console.WriteLine($"{found} Attributed inComing found!");
         }
 
-        /// <inheritdoc/>
-        public async Task<FlamingoCore> InitBot(string botToken, char callbackDataSpliter = '_')
+        /// <summary>
+        /// You can add configurations here
+        /// </summary>
+        public FlamingoCore Config(Action<FlamingoCore> action)
         {
-            _callbackDataSpliter = callbackDataSpliter;
+            action(this);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public async Task<FlamingoCore> InitBot(string botToken)
+        {
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
             _botInfo = await _botClient.GetMeAsync();
 
@@ -100,9 +114,8 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public FlamingoCore InitBot(string botToken, bool getMe, char callbackDataSpliter = '_')
+        public FlamingoCore InitBot(string botToken, bool getMe)
         {
-            _callbackDataSpliter = callbackDataSpliter;
             _botClient = new TelegramBotClient(botToken, _httpClient, _baseUrl);
 
             if (getMe)
@@ -115,6 +128,13 @@ namespace Flamingo
         public async Task<FlamingoCore> SetBotInfo()
         {
             _botInfo = await _botClient.GetMeAsync();
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public FlamingoCore SetCallbackDataSpliter(char callbackDataSpliter = '_')
+        {
+            _callbackDataSpliter = callbackDataSpliter;
             return this;
         }
 
@@ -316,7 +336,34 @@ namespace Flamingo
                 _allowedUpdates.Add(updateType);
             }
         }
-        
+
+        /// <inheritdoc/>
+        public void AddAdvancedInComing<T, U>(BaseCarrierFish<T, U> carrierFish,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>
+        {
+            AddInComing(carrierFish, group, isEdited, isChannelPost, isMine);
+        }
+
+        /// <inheritdoc/>
+        public Carrier<U> AddAdvancedInComing<T, U>(
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false) where U : IAdvFish<T>
+        {
+            var carrier = new BaseCarrierFish<T, U>(
+                filter,
+                filterAsync);
+
+            AddInComing(carrier, group, isEdited, isChannelPost, isMine);
+            return carrier.Carrier;
+        }
+
         /// <inheritdoc/>
         public GroupedInComing<T> AddInComingAwaitable<T>(IFisherAwaits<T> fish,
             int group = 0,
@@ -368,9 +415,28 @@ namespace Flamingo
             return false;
         }
 
+        private void CheckAdvInComings<T>(IFish<T> fish)
+        {
+            var t = fish.GetType();
+
+            var interfaces = t.GetInterfaces();
+
+            var carrier = t.GetInterfaces().FirstOrDefault(x =>
+              x.IsGenericType &&
+              x.GetGenericTypeDefinition() == typeof(ICarrier<>));
+
+            if (carrier != null)
+            {
+                var m = carrier.GetMethod("SetupFish");
+
+                m.Invoke(fish, null);
+            }
+        }
+
         private async Task ProcessInComings<T>(
             SortedSet<GroupedInComing<T>> _inComingMessages,
-            ICondiment<T> condiment)
+            ICondiment<T> condiment,
+            Func<FlamingoCore, Exception, Task> errorHandler)
         {
             if (await ProcessAwaitables(condiment)) return;
 
@@ -379,9 +445,28 @@ namespace Flamingo
             {
                 if (await inComing.InComingFish.ShouldEatAsync(condiment))
                 {
-                    if (!await inComing.InComingFish.GetEaten(condiment))
+                    CheckAdvInComings(inComing.InComingFish);
+
+                    try
                     {
-                        break;
+                        if (!await inComing.InComingFish.GetEaten(condiment))
+                        {
+                            break;
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        if(errorHandler != null)
+                        {
+                            await errorHandler(this, e);
+                        }
+                    }
+                    finally
+                    {
+                        if(inComing.InComingFish is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                        }
                     }
                 }
             }
@@ -389,15 +474,35 @@ namespace Flamingo
 
         /// <inheritdoc/>
         public async Task ProcessInComings<T>(
-            ICondiment<T> condiment)
+            ICondiment<T> condiment,
+            Func<FlamingoCore, Exception, Task> errorHandler = null)
         {
             if (await ProcessAwaitables(condiment)) return;
 
             await foreach (var handler in PassedHandlersAsync(condiment))
             {
-                if (!await handler.GetEaten(condiment))
+                CheckAdvInComings(handler);
+
+                try
                 {
-                    break;
+                    if (!await handler.GetEaten(condiment))
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (errorHandler != null)
+                    {
+                        await errorHandler(this, e);
+                    }
+                }
+                finally
+                {
+                    if (handler is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
             }
         }
@@ -440,7 +545,9 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public async Task UpdateRedirector(Update update)
+        public async Task UpdateRedirector(
+            Update update,
+            Func<FlamingoCore, Exception, Task> errorHandler = null)
         {
             switch (update)
             {
@@ -451,7 +558,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.Message, this));
+                            new MessageCondiment(update.Message, this),
+                            errorHandler);
 
                         break;
                     }
@@ -463,7 +571,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.ChannelPost, this, true));
+                            new MessageCondiment(update.ChannelPost, this, true),
+                            errorHandler);
 
                         break;
                     }
@@ -475,7 +584,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.EditedMessage, this, isEdited: true));
+                            new MessageCondiment(update.EditedMessage, this, isEdited: true),
+                            errorHandler);
 
                         break;
                     }
@@ -487,7 +597,8 @@ namespace Flamingo
 
                         await ProcessInComings(
                             _inComingManager.InComingMessages,
-                            new MessageCondiment(update.EditedChannelPost, this, true, true));
+                            new MessageCondiment(update.EditedChannelPost, this, true, true),
+                            errorHandler);
 
                         break;
                     }
@@ -500,7 +611,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingCallbackQueries,
                             new CallbackQueryCondiment(
-                                update.CallbackQuery, this, _callbackDataSpliter));
+                                update.CallbackQuery, this, _callbackDataSpliter),
+                            errorHandler);
 
                         break;
                     }
@@ -513,7 +625,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingInlineQueries,
                             new InlineQueryCondiment(
-                                update.InlineQuery, this));
+                                update.InlineQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -526,7 +639,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingInlineResultChosen,
                             new ChosenInlineResultCondiment(
-                                update.ChosenInlineResult, this));
+                                update.ChosenInlineResult, this),
+                            errorHandler);
 
                         break;
                     }
@@ -539,7 +653,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
-                                update.ChatMember, this, false));
+                                update.ChatMember, this, false),
+                            errorHandler);
 
                         break;
                     }
@@ -552,7 +667,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingChatMembers,
                             new ChatMemberCondiment(
-                                update.MyChatMember, this, true));
+                                update.MyChatMember, this, true),
+                            errorHandler);
 
                         break;
                     }
@@ -565,7 +681,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPoll,
                             new PollCondiment(
-                                update.Poll, this));
+                                update.Poll, this),
+                            errorHandler);
 
                         break;
                     }
@@ -578,7 +695,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPollAnswer,
                             new PollAnswerCondiment(
-                                update.PollAnswer, this));
+                                update.PollAnswer, this),
+                            errorHandler);
 
                         break;
                     }
@@ -591,7 +709,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingPreCheckoutQuery,
                             new PreCheckoutQueryCondiment(
-                                update.PreCheckoutQuery, this));
+                                update.PreCheckoutQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -604,7 +723,8 @@ namespace Flamingo
                         await ProcessInComings(
                             _inComingManager.InComingShippingQuery,
                             new ShippingQueryCondiment(
-                                update.ShippingQuery, this));
+                                update.ShippingQuery, this),
+                            errorHandler);
 
                         break;
                     }
@@ -660,7 +780,7 @@ namespace Flamingo
                         {
                             try
                             {
-                                await UpdateRedirector(update);
+                                await UpdateRedirector(update, errorHandler);
                             }
                             catch (Exception e)
                             {
@@ -748,7 +868,25 @@ namespace Flamingo
         }
 
         /// <summary>
-        /// Add an auto message sender limit to rate manager
+        /// Add a timed limit
+        /// </summary>
+        public bool AddTimedLimit<T, TResult>(
+            TResult limited,
+            Expression<Func<T, TResult>> selsctor,
+            TimeSpan duration,
+            bool waitForLimit = false,
+            Func<TResult, TResult, bool> comparer = null)
+        {
+            return RateLimitManager.AddLimit(
+                new BaseLimiter<T, TResult>(
+                    limited,
+                    selsctor,
+                    new TimeLimit(duration, waitForLimit),
+                    comparer));
+        }
+
+        /// <summary>
+        /// Add an auto message sender limit to rate manager advanced
         /// </summary>
         /// <param name="timeSpan">Time span to wait till next message</param>
         /// /// <param name="waitForLimit">Block and wait for limit</param>
@@ -768,6 +906,173 @@ namespace Flamingo
         {
             return AddAutoLimit(new AutoLimitBuilder<CallbackQuery, User>(
                     new CallbackQuerySenderLimiter(timeSpan, waitForLimit)));
+        }
+
+        private void AddFishObj(object obj,
+            Type type,
+            int group = 0,
+            bool isEdited = false,
+            bool isChannelPost = false,
+            bool isMine = false)
+        {
+            var updateType = Extensions.AsUpdateType(
+                type, isEdited, isChannelPost, isMine);
+
+            switch (updateType)
+            {
+                case UpdateType.Message:
+                case UpdateType.EditedMessage:
+                case UpdateType.ChannelPost:
+                case UpdateType.EditedChannelPost:
+                    AddInComing(obj as IFish<Message>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ChatMember:
+                case UpdateType.MyChatMember:
+                    AddInComing(obj as IFish<ChatMemberUpdated>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.InlineQuery:
+                    AddInComing(obj as IFish<InlineQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ChosenInlineResult:
+                    AddInComing(obj as IFish<ChosenInlineResult>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.CallbackQuery:
+                    AddInComing(obj as IFish<CallbackQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.ShippingQuery:
+                    AddInComing(obj as IFish<ShippingQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.PreCheckoutQuery:
+                    AddInComing(obj as IFish<PreCheckoutQuery>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.Poll:
+                    AddInComing(obj as IFish<Poll>, group, isEdited, isChannelPost, isMine);
+                    break;
+                case UpdateType.PollAnswer:
+                    AddInComing(obj as IFish<PollAnswer>, group, isEdited, isChannelPost, isMine);
+                    break;
+            }
+        }
+
+        /// <inheritdoc/>
+        public FlamingoCore AutoAddInComings(bool notify = false)
+        {
+            var entry = Assembly.GetEntryAssembly();
+
+            var name = entry.GetName().Name;
+
+            var inComingsNamespace = name + ".InComings";
+
+            var typesNamespaces = new Dictionary<Type, string>
+            {
+                {typeof(Message), inComingsNamespace + ".Messages" },
+                {typeof(CallbackQuery), inComingsNamespace + ".CallbackQueries" },
+                {typeof(InlineQuery), inComingsNamespace + ".InlineQueries" },
+                {typeof(ChosenInlineResult), inComingsNamespace + ".ChosenInlineResults" },
+                {typeof(ChatMemberUpdated), inComingsNamespace + ".ChatMemberUpdates" },
+                {typeof(Poll), inComingsNamespace + ".Polls" },
+                {typeof(PollAnswer), inComingsNamespace + ".PollAnswers" },
+                {typeof(ShippingQuery), inComingsNamespace + ".ShippingQueries" },
+                {typeof(PreCheckoutQuery), inComingsNamespace + ".PreCheckoutQueries" }
+            };
+
+            var types = entry.GetTypes();
+
+            var c1 = typeof(BaseCarrierFish<,>);
+
+            foreach (var ns in typesNamespaces)
+            {
+                var handlers = types.Where(
+                    x => x.Namespace == ns.Value && x.IsClass && x.IsPublic);
+
+                if (!handlers.Any())
+                    continue;
+
+                foreach (var handler in handlers)
+                {
+                    var attrs = handler.GetCustomAttributes();
+
+                    bool edited = false;
+                    bool channelPost = false;
+                    bool mine = false;
+                    int group = 0;
+
+                    foreach (var attr in attrs)
+                    {
+                        if (attr is HandlingGroupAttribute groupAttribute)
+                        {
+                            group = groupAttribute.Group;
+                            continue;
+                        }
+
+                        if (ns.Key == typeof(Message))
+                        {
+                            if (attr is IsEditedMessageAttribute)
+                            {
+                                edited = true;
+                                continue;
+                            }
+
+                            if (attr is IsChannelPostAttribute)
+                            {
+                                channelPost = true;
+                                continue;
+                            }
+                        }
+
+                        if (attr is IsMyChatMemberAttribute)
+                        {
+                            mine = true;
+                            continue;
+                        }
+                    }
+
+                    var interfaces = handler.GetInterfaces();
+                    var advFish = interfaces.FirstOrDefault(x =>
+                      x.IsGenericType &&
+                      x.GetGenericTypeDefinition() == typeof(IAdvFish<>));
+
+                    if(advFish != null)
+                    {
+                        var gArgs = advFish.GetGenericArguments();
+                        if(gArgs[0] == ns.Key)
+                        {
+                            var c2 = c1.MakeGenericType(ns.Key, handler);
+
+                            var carrier = Activator.CreateInstance(c2, 
+                                args: new object[] { null, null });
+
+                            AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
+
+                            if(notify)
+                                Console.WriteLine($"Added advanced incoming: '{handler.Name}' from '{ns.Value}'\n" +
+                                $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
+                            continue;
+                        }
+                    }
+
+                    var fish = interfaces.FirstOrDefault(x =>
+                      x.IsGenericType &&
+                      x.GetGenericTypeDefinition() == typeof(IFish<>));
+
+                    if (fish != null)
+                    {
+                        if (handler.GetConstructor(Array.Empty<Type>()) is ConstructorInfo constructor)
+                        {
+                            var carrier = constructor.Invoke(Array.Empty<object>());
+
+                            AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
+
+                            if (notify)
+                                Console.WriteLine($"Added incoming: '{handler.Name}' from '{ns.Value}'\n" +
+                                $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            return this;
         }
 
         #endregion
