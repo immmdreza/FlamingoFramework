@@ -197,7 +197,8 @@ namespace Flamingo
         /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="condiment"></param>
-        Task ProcessInComings<T>(ICondiment<T> condiment);
+        Task ProcessInComings<T>(ICondiment<T> condiment,
+            Func<FlamingoCore, Exception, Task> errorHandler = null);
 
         /// <summary>
         /// This is a method provided by "Telegram.Bot.Extensions.Polling" to receive updates
@@ -257,5 +258,11 @@ namespace Flamingo
         /// Rate limit manager
         /// </summary>
         public RateLimitManager RateLimitManager { get; }
+
+        /// <summary>
+        /// Automatically add handler from '{Project}.InComings' name space and sub name spaces
+        /// </summary>
+        /// <param name="notify">Print details of found handlers in console</param>
+        public FlamingoCore AutoAddInComings(bool notify = false);
     }
 }

@@ -90,6 +90,7 @@ namespace Flamingo
             _cancellationTokenSource = new CancellationTokenSource();
             _allowedUpdates = new List<UpdateType>();
 
+            _callbackDataSpliter = '_';
             var found = AddAttributedInComings();
             Console.WriteLine($"{found} Attributed inComing found!");
         }
@@ -473,15 +474,35 @@ namespace Flamingo
 
         /// <inheritdoc/>
         public async Task ProcessInComings<T>(
-            ICondiment<T> condiment)
+            ICondiment<T> condiment,
+            Func<FlamingoCore, Exception, Task> errorHandler = null)
         {
             if (await ProcessAwaitables(condiment)) return;
 
             await foreach (var handler in PassedHandlersAsync(condiment))
             {
-                if (!await handler.GetEaten(condiment))
+                CheckAdvInComings(handler);
+
+                try
                 {
-                    break;
+                    if (!await handler.GetEaten(condiment))
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (errorHandler != null)
+                    {
+                        await errorHandler(this, e);
+                    }
+                }
+                finally
+                {
+                    if (handler is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
             }
         }
@@ -933,6 +954,7 @@ namespace Flamingo
             }
         }
 
+        /// <inheritdoc/>
         public FlamingoCore AutoAddInComings(bool notify = false)
         {
             var entry = Assembly.GetEntryAssembly();
