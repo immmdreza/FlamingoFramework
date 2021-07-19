@@ -19,14 +19,24 @@
             "defaultValue": "false"
       }
     },
+    "primaryOutputs": [
+      {
+        "path": "QuickStart.csproj"        
+      }
+    ],
     "postActions": [
       {
-        "description": "Installing required Flamingo nuget package",
-        "manualInstructions": [
-          {"text": "Run 'dotnet add package Flamingo'" }
-        ],
-        "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
-        "continueOnError": false
+        "actionId": "3A7C4B45-1F5D-4A30-959A-51B88E82B5D2",
+        "args": {
+          "executable": "dotnet",
+          "args": "add package Flamingo",
+          "redirectStandardOutput": "true"
+        },
+        "manualInstructions": [{
+           "text": "Run 'dotnet add package Flamingo'"
+        }],
+        "continueOnError": false,
+        "description ": "Installing Flamingo as nuget package"
       },
       {
         "condition": "(!skipRestore)",
@@ -36,5 +46,6 @@
         ],
         "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9026",
         "continueOnError": false
-      }]
+      }
+    ]
   }
