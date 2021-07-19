@@ -1043,8 +1043,10 @@ namespace Flamingo
                                 args: new object[] { null, null });
 
                             AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
-                            Console.WriteLine($"Added advanced incoming: '{handler.Name}' from '{ns.Value}'\n" +
-                            $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
+
+                            if(notify)
+                                Console.WriteLine($"Added advanced incoming: '{handler.Name}' from '{ns.Value}'\n" +
+                                $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
                             continue;
                         }
                     }
@@ -1060,7 +1062,9 @@ namespace Flamingo
                             var carrier = constructor.Invoke(Array.Empty<object>());
 
                             AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
-                            Console.WriteLine($"Added incoming: '{handler.Name}' from '{ns.Value}'\n" +
+
+                            if (notify)
+                                Console.WriteLine($"Added incoming: '{handler.Name}' from '{ns.Value}'\n" +
                                 $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
                             continue;
                         }
