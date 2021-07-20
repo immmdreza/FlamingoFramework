@@ -45,7 +45,7 @@ namespace FlamingoProduction.InComings.Messages
         protected override async Task GetEatenWrapper(Message inComing)
         {
             // Creates a form filler instance for `UserDataForm` class
-            var filler = new FillFormRequest<UserDataForm>(Flamingo);
+            var filler = Flamingo.CreateFormFiller<UserDataForm>();
 
             // Asks user for marked properties of `UserDataForm`
             // And allows user to fail for 1 time ( Type check failure or value checks )

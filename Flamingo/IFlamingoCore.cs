@@ -4,6 +4,7 @@ using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Awaitables;
+using Flamingo.Fishes.Awaitables.FillFormHelper;
 using Flamingo.Fishes.InComingFishes;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
@@ -17,6 +18,9 @@ using Telegram.Bot.Types.Enums;
 
 namespace Flamingo
 {
+    /// <summary>
+    /// Base interface for Flamingo main instance
+    /// </summary>
     public interface IFlamingoCore
     {
         /// <summary>
@@ -264,5 +268,10 @@ namespace Flamingo
         /// </summary>
         /// <param name="notify">Print details of found handlers in console</param>
         public FlamingoCore AutoAddInComings(bool notify = false);
+
+        /// <summary>
+        /// Create a form filler class
+        /// </summary>
+        public FillFormRequest<T> CreateFormFiller<T>();
     }
 }

@@ -10,6 +10,7 @@ using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Advanced.Attributes;
 using Flamingo.Fishes.Advanced.CarrierFishes;
+using Flamingo.Fishes.Awaitables.FillFormHelper;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
 using Flamingo.RateLimiter.Limiters;
@@ -1073,6 +1074,12 @@ namespace Flamingo
             }
 
             return this;
+        }
+
+        /// <inheritdoc/>
+        public FillFormRequest<T> CreateFormFiller<T>()
+        {
+            return new FillFormRequest<T>(this);
         }
 
         #endregion

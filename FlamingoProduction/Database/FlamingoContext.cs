@@ -1,10 +1,19 @@
-﻿using FlamingoProduction.Models;
+﻿using Flamingo.Fishes.Advanced.Attributes;
+using FlamingoProduction.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlamingoProduction.Database
 {
     public class FlamingoContext: DbContext
     {
+        public MagicalItem MagicalItem { get; }
+
+        [AdvancedHandlerConstructor]
+        public FlamingoContext(MagicalItem magicalItem)
+        {
+            MagicalItem = magicalItem;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
