@@ -6,6 +6,16 @@
     public interface IFlamingoFormData
     {
         /// <summary>
+        /// If the data is Required
+        /// </summary>
+        public bool Required { get; set; }
+
+        /// <summary>
+        /// The name of property when asking for it
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// A text to ask this data from user. like "Please enter the name"
         /// </summary>
         public string AskText { get; set; }

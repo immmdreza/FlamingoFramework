@@ -133,6 +133,11 @@ namespace Flamingo.Helpers
                 output = default;
                 return false;
             }
+            catch(FormatException)
+            {
+                output = default;
+                return false;
+            }
             catch (NotSupportedException)
             {
                 output = default;
@@ -162,6 +167,11 @@ namespace Flamingo.Helpers
                 return false;
             }
             catch(ArgumentException)
+            {
+                output = default;
+                return false;
+            }
+            catch (FormatException)
             {
                 output = default;
                 return false;

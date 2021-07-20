@@ -8,21 +8,34 @@ using Telegram.Bot.Types;
 
 namespace FlamingoProduction.InComings.Messages
 {
+    public enum Gender
+    {
+        None = 0,
+
+        Male = 1,
+
+        Female = 2,
+    }
+
     public class UserDataForm
     {
         [FlamingoFormProperty]
-        [StringMaxLength(10, FailureMessage = "10 char at most")]
+        [StringLength(10, FailureMessage = "10 char at most")]
         [StringRegex(@"^[a-zA-Z]+$", FailureMessage = "only letters")]
         public string FirstName { get; set; }
 
         [FlamingoFormProperty]
+        [StringLength(10)]
         [StringRegex(@"^[a-zA-Z]+$", FailureMessage = "only letters")]
         public string LastName { get; set; }
 
         [FlamingoFormProperty]
         public int Code { get; set; }
 
-        public string FullName => $"{FirstName} {LastName} ({Code})";
+        [FlamingoFormProperty(Required = false)]
+        public Gender Gender { get; set; } = Gender.None;
+
+        public string FullName => $"{FirstName} {LastName} ({Code}) ({Gender})";
     }
 
     [CommandFilter("form")]
@@ -31,11 +44,23 @@ namespace FlamingoProduction.InComings.Messages
     {
         protected override async Task GetEatenWrapper(Message inComing)
         {
+            // Creates a form filler instance for `UserDataForm` class
             var filler = new FillFormRequest<UserDataForm>(Flamingo);
 
-            await filler.Ask(Sender.Id, 1);
+            // Asks user for marked properties of `UserDataForm`
+            // And allows user to fail for 1 time ( Type check failure or value checks )
+            await filler.Ask(
+                Sender.Id,
+                triesOnFailure: 1,
+                cancellInputPattern: "^/cancel");
 
-            await ReplyText(filler.Instance.FullName);
+            if(filler.Succeeded)
+                // filler.Instance is an instance of `UserDataForm` which is filled!
+                await ReplyText(filler.Instance.FullName);
+            else if(filler.Canceled)
+                await ReplyText("See you.");
+            else
+                await ReplyText("Please try again!");
         }
     }
 }

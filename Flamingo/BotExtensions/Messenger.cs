@@ -88,7 +88,6 @@ namespace Flamingo.BotExtensions
             else
                 _text += text;
 
-            _text = Markdig.Markdown.ToHtml(_text);
             _messageMode &= MessageMode.Text;
             return this;
         }

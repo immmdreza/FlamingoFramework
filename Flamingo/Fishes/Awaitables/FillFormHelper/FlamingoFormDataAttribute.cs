@@ -16,5 +16,11 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
 
         /// <inheritdoc/>
         public string InvalidTypeText { get; set; }
+
+        /// <inheritdoc/>
+        public string Name { get; set; }
+
+        /// <inheritdoc/>
+        public bool Required { get; set; } = true;
     }
 }

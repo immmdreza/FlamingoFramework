@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Flamingo.Fishes.Awaitables.FillFormHelper
 {
@@ -67,47 +69,29 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             return attr;
         }
             
-
-        private string GetAskText(int index)
-        {
-            if(_hasConstructor)
-            {
-                var param = _parameterInfos.ElementAt(index);
-                return GetAttribute<FlamingoFormDataAttribute>(param.GetCustomAttributes())
-                    .AskText ?? $"Please send me {param.Name}";
-            }
-            else
-            {
-                var prop = _propertyInfos.ElementAt(index);
-                return GetAttribute<FlamingoFormPropertyAttribute>(prop.GetCustomAttributes())
-                    .AskText ?? $"Please send me {prop.Name}";
-            }
-        }
-
-        private string GetTypeFailureText(int index)
+        private IFlamingoFormData GetFormDataInfo(int index)
         {
             if (_hasConstructor)
             {
                 var param = _parameterInfos.ElementAt(index);
-                return GetAttribute<FlamingoFormDataAttribute>(param.GetCustomAttributes())
-                    .InvalidTypeText ?? $"Invalid input for {param.Name}";
+                return GetAttribute<FlamingoFormDataAttribute>(param.GetCustomAttributes());
+
             }
             else
             {
                 var prop = _propertyInfos.ElementAt(index);
-                return GetAttribute<FlamingoFormPropertyAttribute>(prop.GetCustomAttributes())
-                    .InvalidTypeText ?? $"Invalid input for {prop.Name}";
+                return GetAttribute<FlamingoFormPropertyAttribute>(prop.GetCustomAttributes());
             }
         }
 
-        private string CheckFunction(int index, Type type, object obj)
+        private string CheckFunction(int index, Type type, object obj, string name = null)
         {
             if (_hasConstructor)
             {
                 foreach (var item in _parameterInfos.ElementAt(index)
                     .GetCustomAttributes())
                 {
-                    var check = ValueChecks(item, type, obj);
+                    var check = ValueChecks(item, type, obj, name);
                     if (!string.IsNullOrEmpty(check))
                     {
                         return check;
@@ -121,7 +105,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                 foreach (var item in _propertyInfos.ElementAt(index)
                     .GetCustomAttributes())
                 {
-                    var check = ValueChecks(item, type, obj);
+                    var check = ValueChecks(item, type, obj, name);
                     if (!string.IsNullOrEmpty(check))
                     {
                         return check;
@@ -132,7 +116,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             }
         }
 
-        private string ValueChecks(Attribute attribute, Type type, object obj)
+        private string ValueChecks(Attribute attribute, Type type, object obj, string name = null)
         {
             var interfaces = attribute.GetType().GetInterfaces();
             foreach (var i in interfaces)
@@ -152,7 +136,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                         if (!result)
                         {
                             var text = (string)i.GetProperty("FailureMessage").GetValue(attribute);
-                            return text ?? $"Value check failed for {type}";
+                            return text ?? $"Value check failed " + name ?? "";
                         }
                         else
                         {
@@ -166,6 +150,18 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
         }
 
         private readonly List<object> _formObjs;
+
+        /// <summary>
+        /// If asking was successful
+        /// </summary>
+        public bool Succeeded => _asked;
+
+        private bool _canceled = false;
+
+        /// <summary>
+        /// If user sends cancel text
+        /// </summary>
+        public bool Canceled => _canceled;
 
         /// <summary>
         /// Created instance of form
@@ -195,48 +191,97 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             }
         }
 
+        private string PropertyName(int index)
+        {
+            if (_hasConstructor)
+            {
+                return _parameterInfos.ElementAt(index).Name;
+
+            }
+            else
+            {
+                return _propertyInfos.ElementAt(index).Name;
+            }
+        }
+
+
         /// <summary>
         /// Start asking for form data
         /// </summary>
         /// <param name="userid">User id to ask to</param>
-        /// <param name="triesOnTypeFailure">How much time we should try if failed</param>
+        /// <param name="triesOnFailure">How much time we should try if failed</param>
         /// <param name="cancellationTokenSource">To cancel the job</param>
         /// <param name="timeOut">Time out in seconds</param>
         /// <param name="onTimeOutMessage">A message sent when wait is timed out</param>
+        /// <param name="cancellInputPattern">Regex pattern to cancel asking</param>
         /// <returns></returns>
         public async Task Ask(long userid,
-            int triesOnTypeFailure = 0,
+            int triesOnFailure = 0,
             int timeOut = 30,
             string onTimeOutMessage = null,
+            string cancellInputPattern = null,
             CancellationTokenSource cancellationTokenSource = null)
         {
-            triesOnTypeFailure++;
-
+            triesOnFailure++;
+            var cleanKeys = false;
             foreach (var types in _dataTypes.Select((x, i) => (i, x)))
             {
-                var askText = GetAskText(types.i);
+                var formDataInfo = GetFormDataInfo(types.i);
+
+                IReplyMarkup markup = null;
+                if (types.x.IsEnum)
+                {
+                    markup = new ReplyButton(types.x.GetEnumNames()).Markup();
+                    cleanKeys = true;
+                }
+                else if(cleanKeys)
+                {
+                    markup = new ReplyKeyboardRemove();
+                    cleanKeys = false;
+                }
 
                 await _flamingoCore.BotClient.SendTextMessageAsync(
-                    userid, askText);
+                    userid,
+                    formDataInfo.AskText?? $"Please send value for {formDataInfo.Name?? PropertyName(types.i)}",
+                    replyMarkup: markup);
 
                 int tries = 0;
                 bool succeeded = false;
-                while (tries < triesOnTypeFailure)
+                while (tries < triesOnFailure)
                 {
                     var respond = await _flamingoCore.WaitForInComing(
                         new AwaitInComingText(userid, timeOut, cancellationTokenSource));
 
                     if (respond.Succeeded)
                     {
+                        if(cancellInputPattern != null)
+                        {
+                            if (Regex.IsMatch(respond.TextRespond, cancellInputPattern))
+                            {
+                                if(formDataInfo.Required)
+                                {
+                                    _canceled = true;
+                                    return;
+                                }
+
+                                _formObjs.Add(null);
+                                succeeded = true;
+                                break;
+                            }
+                        }
+
+
                         if (respond.TextRespond.TryConvert(
                             types.x, out object obj))
                         {
-                            var valueCheck = CheckFunction(types.i, types.x, obj);
+                            var valueCheck = CheckFunction(
+                                types.i, types.x, obj, formDataInfo.Name ?? PropertyName(types.i));
 
                             if(!string.IsNullOrEmpty(valueCheck))
                             {
                                 await _flamingoCore.BotClient.SendTextMessageAsync(
                                     userid, valueCheck);
+                                tries++;
                                 continue;
                             }
 
@@ -247,7 +292,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                         else
                         {
                             await _flamingoCore.BotClient.SendTextMessageAsync(
-                                userid, GetTypeFailureText(types.i));
+                                userid, formDataInfo.InvalidTypeText?? $"Invalid input type for {formDataInfo.Name ?? PropertyName(types.i)}");
                         }
                     }
                     else if(respond.TimedOut)
