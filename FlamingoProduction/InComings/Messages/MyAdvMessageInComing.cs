@@ -1,6 +1,7 @@
 ﻿using Flamingo.Attributes.Filters.Messages;
 using Flamingo.Fishes.Advanced.InComingHandlers;
 using Flamingo.Fishes.Awaitables.FillFormHelper;
+using Flamingo.Fishes.Awaitables.FillFormHelper.FromDataChecks;
 using Flamingo.Helpers.Types.Enums;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
@@ -9,16 +10,19 @@ namespace FlamingoProduction.InComings.Messages
 {
     public class UserDataForm
     {
-        [FlamingoFormConstructor]
-        public UserDataForm(
-            [FlamingoFormData] string name,
-            [FlamingoFormData] string lastName,
-            [FlamingoFormData(InvalidTypeText = "Please enter a numeric value")] int code)
-        {
-            FullName = name + " " + lastName + $" ({code})";
-        }
+        [FlamingoFormProperty]
+        [StringMaxLength(10, FailureMessage = "10 char at most")]
+        [StringRegex(@"^[a-zA-Z]+$", FailureMessage = "only letters")]
+        public string FirstName { get; set; }
 
-        public string FullName { get; }
+        [FlamingoFormProperty]
+        [StringRegex(@"^[a-zA-Z]+$", FailureMessage = "only letters")]
+        public string LastName { get; set; }
+
+        [FlamingoFormProperty]
+        public int Code { get; set; }
+
+        public string FullName => $"{FirstName} {LastName} ({Code})";
     }
 
     [CommandFilter("form")]

@@ -100,6 +100,71 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             }
         }
 
+        private string CheckFunction(int index, Type type, object obj)
+        {
+            if (_hasConstructor)
+            {
+                foreach (var item in _parameterInfos.ElementAt(index)
+                    .GetCustomAttributes())
+                {
+                    var check = ValueChecks(item, type, obj);
+                    if (!string.IsNullOrEmpty(check))
+                    {
+                        return check;
+                    }
+                }
+
+                return null;
+            }
+            else
+            {
+                foreach (var item in _propertyInfos.ElementAt(index)
+                    .GetCustomAttributes())
+                {
+                    var check = ValueChecks(item, type, obj);
+                    if (!string.IsNullOrEmpty(check))
+                    {
+                        return check;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        private string ValueChecks(Attribute attribute, Type type, object obj)
+        {
+            var interfaces = attribute.GetType().GetInterfaces();
+            foreach (var i in interfaces)
+            {
+                if (!i.IsGenericType)
+                    continue;
+
+                var g = i.GetGenericTypeDefinition();
+                if (g == typeof(IFamingoFormDataCheck<>))
+                {
+                    var a = i.GetGenericArguments();
+                    if (a[0] == type)
+                    {
+                        var m = i.GetMethod("Check");
+                        var result = (bool)m.Invoke(attribute, new[] { obj });
+
+                        if (!result)
+                        {
+                            var text = (string)i.GetProperty("FailureMessage").GetValue(attribute);
+                            return text ?? $"Value check failed for {type}";
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private readonly List<object> _formObjs;
 
         /// <summary>
@@ -117,8 +182,6 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                     var cnstr = typeof(T).GetConstructor(_dataTypes.ToArray());
 
                     return (T)cnstr.Invoke(_formObjs.ToArray());
-
-                    // return (T)Activator.CreateInstance(typeof(T), _formObjs);
                 }
 
                 var _instance = (T)Activator.CreateInstance(typeof(T));
@@ -138,9 +201,13 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
         /// <param name="userid">User id to ask to</param>
         /// <param name="triesOnTypeFailure">How much time we should try if failed</param>
         /// <param name="cancellationTokenSource">To cancel the job</param>
+        /// <param name="timeOut">Time out in seconds</param>
+        /// <param name="onTimeOutMessage">A message sent when wait is timed out</param>
         /// <returns></returns>
         public async Task Ask(long userid,
             int triesOnTypeFailure = 0,
+            int timeOut = 30,
+            string onTimeOutMessage = null,
             CancellationTokenSource cancellationTokenSource = null)
         {
             triesOnTypeFailure++;
@@ -157,13 +224,22 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                 while (tries < triesOnTypeFailure)
                 {
                     var respond = await _flamingoCore.WaitForInComing(
-                        new AwaitInComingText(userid, cancellationToken: cancellationTokenSource));
+                        new AwaitInComingText(userid, timeOut, cancellationTokenSource));
 
                     if (respond.Succeeded)
                     {
                         if (respond.TextRespond.TryConvert(
                             types.x, out object obj))
                         {
+                            var valueCheck = CheckFunction(types.i, types.x, obj);
+
+                            if(!string.IsNullOrEmpty(valueCheck))
+                            {
+                                await _flamingoCore.BotClient.SendTextMessageAsync(
+                                    userid, valueCheck);
+                                continue;
+                            }
+
                             _formObjs.Add(obj);
                             succeeded = true;
                             break;
@@ -176,7 +252,8 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                     }
                     else if(respond.TimedOut)
                     {
-                        // Do something on time out
+                        await _flamingoCore.BotClient.SendTextMessageAsync(
+                            userid, onTimeOutMessage?? "You're time out!");
                     }
                     else
                     {

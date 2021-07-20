@@ -32,7 +32,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper.Tests
         [TestMethod()]
         public void FillFormRequestTest()
         {
-            var fff = new FillFormRequest<UserDataForm>();
+            // var fff = new FillFormRequest<UserDataForm>();
         }
     }
 }
