@@ -23,7 +23,8 @@ namespace Flamingo.Filters
 
                 if (string.IsNullOrEmpty(text)) return false;
 
-                var matches = Regex.Matches(text, pattern, regexOptions);
+                var matches = Regex.Matches(
+                    text, pattern, regexOptions, TimeSpan.FromSeconds(3));
 
                 if(matches.Count > 0)
                 {

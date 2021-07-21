@@ -7,20 +7,21 @@ using Telegram.Bot;
 
 namespace Flamingo.Fishes.Advanced
 {
+    /// <summary>
+    /// Base class to create advanced incoming handlers
+    /// </summary>
+    /// <typeparam name="T">InComing update type</typeparam>
     public abstract class AdvInComingFish<T> : IAdvFish<T>
     {
+        /// <inheritdoc/>
         public Func<ICondiment<T>, Task<bool>> GetEaten { get; }
 
         /// <summary>
         /// Base abstract class of InComings
         /// </summary>
-        /// <param name="getEatenCallback">A callback function which processes incoming update.</param>
-        public AdvInComingFish(Func<ICondiment<T>, Task<bool>> getEatenCallback = null)
+        public AdvInComingFish()
         {
-            if (getEatenCallback == null)
-                GetEaten = _GetEaten;
-            else
-                GetEaten = getEatenCallback;
+            GetEaten = _GetEaten;
         }
 
         /// <summary>
@@ -38,8 +39,10 @@ namespace Flamingo.Fishes.Advanced
         /// </summary>
         protected TelegramBotClient BotClient => Cdmt.Flamingo.BotClient;
 
+        /// <inheritdoc/>
         public IFilter<ICondiment<T>> Filter => null;
 
+        /// <inheritdoc/>
         public IFilterAsync<ICondiment<T>> FilterAsync => null;
 
 

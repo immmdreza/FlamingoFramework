@@ -3,6 +3,7 @@ using Flamingo.Fishes.Advanced.InComingHandlers;
 using Flamingo.Fishes.Awaitables.FillFormHelper;
 using Flamingo.Fishes.Awaitables.FillFormHelper.FromDataChecks;
 using Flamingo.Helpers.Types.Enums;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
@@ -52,7 +53,7 @@ namespace FlamingoProduction.InComings.Messages
             await filler.Ask(
                 Sender.Id,
                 triesOnFailure: 1,
-                cancellInputPattern: "^/cancel");
+                cancellInputPattern: new Regex("^/cancel"));
 
             if(filler.Succeeded)
                 // filler.Instance is an instance of `UserDataForm` which is filled!

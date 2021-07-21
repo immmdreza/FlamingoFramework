@@ -110,7 +110,13 @@ namespace FlamingoProduction
         [CommandFilter("start", ArgumentsMode.NoArgs)]
         public static async Task<bool> NormalStart(ICondiment<Message> cdmt)
         {
-            await cdmt.ReplyText($"Just Started!");
+            var msg = await cdmt.ReplyText($"Just Started!");
+
+            await msg.EditText("Oh started again!");
+
+            await msg.Pin();
+
+            await msg.Delete();
             return false;
         }
 

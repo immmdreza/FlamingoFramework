@@ -9,11 +9,19 @@ using System.Threading.Tasks;
 
 namespace Flamingo.Fishes.Advanced
 {
+    /// <summary>
+    /// Base class to create carrier for advanced update handlers
+    /// </summary>
+    /// <typeparam name="T">InComing update type</typeparam>
+    /// <typeparam name="U">Your advanced incoming handler type <see cref="IAdvFish{T}"/></typeparam>
     public class BaseCarrierFish<T, U> : 
-        IDisposable, 
-        ICarrier<U>, 
+        IDisposable,
+        ICarrier<U>,
         IAdvFish<T> where U: IAdvFish<T>
     {
+        /// <summary>
+        /// Base class to create carrier for advanced update handlers
+        /// </summary>
         public BaseCarrierFish(IFilter<ICondiment<T>> filter = null,
             IFilterAsync<ICondiment<T>> filterAsync = null)
         {

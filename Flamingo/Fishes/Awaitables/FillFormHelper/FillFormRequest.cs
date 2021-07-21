@@ -219,7 +219,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             int triesOnFailure = 0,
             int timeOut = 30,
             string onTimeOutMessage = null,
-            string cancellInputPattern = null,
+            Regex cancellInputPattern = null,
             CancellationTokenSource cancellationTokenSource = null)
         {
             triesOnFailure++;
@@ -256,7 +256,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                     {
                         if(cancellInputPattern != null)
                         {
-                            if (Regex.IsMatch(respond.TextRespond, cancellInputPattern))
+                            if (cancellInputPattern.IsMatch(respond.TextRespond))
                             {
                                 if(formDataInfo.Required)
                                 {
