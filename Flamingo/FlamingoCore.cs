@@ -10,6 +10,7 @@ using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Advanced.Attributes;
 using Flamingo.Fishes.Advanced.CarrierFishes;
+using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.Awaitables.FillFormHelper;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.RateLimiter;
@@ -837,6 +838,21 @@ namespace Flamingo
         public async Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish)
         {
             var added = AddInComingAwaitable(inComingfish);
+            return await inComingfish.Wait(this, added);
+        }
+
+        /// <inheritdoc/>
+        public async Task<AwaitableResult<T>> WaitForInComing<T>(
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null,
+            int timeOut = 30,
+            CancellationTokenSource cancellationToken = default)
+        {
+            var inComingfish = new SimpleAwaitableInComing<T>(
+                filter, filterAsync, timeOut, cancellationToken);
+
+            var added = AddInComingAwaitable(inComingfish);
+
             return await inComingfish.Wait(this, added);
         }
 

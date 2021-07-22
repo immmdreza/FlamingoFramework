@@ -1,8 +1,12 @@
 ﻿using Flamingo.Condiments.Extensions;
+using Flamingo.Filters;
+using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Helpers;
 using Flamingo.Helpers.Types.Enums;
+using System;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -110,6 +114,39 @@ namespace Flamingo.Condiments
         public async Task<AwaitableResult<U>> WaitFor<U>(IFisherAwaits<U> fisherAwaits)
         {
             return await Flamingo.WaitForInComing(fisherAwaits);
+        }
+
+        /// <summary>
+        /// Waits for an update that matches the filters
+        /// </summary>
+        /// <typeparam name="U">InComing update type</typeparam>
+        /// <param name="filter">normal filters</param>
+        /// <param name="filterAsync">async filters</param>
+        /// <param name="timeOut">time in second to wait</param>
+        /// <param name="cancellationToken">token to cancel waiting</param>
+        public async Task<AwaitableResult<U>> WaitFor<U>(
+            IFilter<ICondiment<U>> filter = null,
+            IFilterAsync<ICondiment<U>> filterAsync = null,
+            int timeOut = 30,
+            CancellationTokenSource cancellationToken = default)
+        {
+            return await Flamingo.WaitForInComing(filter, filterAsync, timeOut, cancellationToken);
+        }
+
+        /// <summary>
+        /// Waits for an update that matches the filters
+        /// </summary>
+        /// <typeparam name="U">InComing update type</typeparam>
+        /// <param name="filter">expression to filter incoming update</param>
+        /// <param name="timeOut">time in second to wait</param>
+        /// <param name="cancellationToken">token to cancel waiting</param>
+        public async Task<AwaitableResult<U>> WaitFor<U>(
+            Func<ICondiment<U>, bool> filter,
+            int timeOut = 30,
+            CancellationTokenSource cancellationToken = default)
+        {
+            return await Flamingo.WaitForInComing(
+                new FilterBase<ICondiment<U>>(filter), null, timeOut, cancellationToken);
         }
 
 

@@ -7,7 +7,6 @@ using Flamingo.Filters;
 using Flamingo.Filters.Enums;
 using Flamingo.Filters.MessageFilters;
 using Flamingo.Filters.Ninja;
-using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
 using Flamingo.Helpers;

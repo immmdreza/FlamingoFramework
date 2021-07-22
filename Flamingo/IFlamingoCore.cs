@@ -259,6 +259,21 @@ namespace Flamingo
         Task<AwaitableResult<T>> WaitForInComing<T>(IFisherAwaits<T> inComingfish);
 
         /// <summary>
+        /// Waits for an update that matches the filters
+        /// </summary>
+        /// <typeparam name="T">InComing update type</typeparam>
+        /// <param name="filter">normal filters</param>
+        /// <param name="filterAsync">async filters</param>
+        /// <param name="timeOut">time in second to wait</param>
+        /// <param name="cancellationToken">token to cancel waiting</param>
+        /// <returns></returns>
+        Task<AwaitableResult<T>> WaitForInComing<T>(
+            IFilter<ICondiment<T>> filter = null,
+            IFilterAsync<ICondiment<T>> filterAsync = null,
+            int timeOut = 30,
+            CancellationTokenSource cancellationToken = default);
+
+        /// <summary>
         /// Rate limit manager
         /// </summary>
         public RateLimitManager RateLimitManager { get; }
