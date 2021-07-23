@@ -800,7 +800,6 @@ namespace Flamingo
             }
         }
 
-
         /// <inheritdoc/>
         public void StartReceiving(
             Func<ITelegramBotClient, Exception, CancellationToken, Task> onError)
@@ -811,7 +810,6 @@ namespace Flamingo
                     onError),
                 _cancellationTokenSource.Token);
         }
-
 
         /// <inheritdoc/>
         public async Task ReceiveAsync(

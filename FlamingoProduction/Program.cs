@@ -28,7 +28,7 @@ namespace FlamingoProduction
         {
             // Create "FlamingoCore" instance and user "InitBot" to initialize you bot!
             await new FlamingoCore()
-                .AutoAddInComings()
+                .AutoAddInComings(true)
 
                 .Config(ConfigFlaminog)
                 .InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8", true)
