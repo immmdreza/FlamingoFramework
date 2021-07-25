@@ -146,7 +146,7 @@ namespace Flamingo
         /// <returns></returns>
         Task Fly(
             bool clearQueue = false,
-            Func<FlamingoCore, Exception, Task> errorHandler = null);
+            Func<IFlamingoCore, Exception, Task> errorHandler = null);
 
         /// <summary>
         /// Initialize your bot!

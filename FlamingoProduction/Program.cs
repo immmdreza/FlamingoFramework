@@ -99,7 +99,7 @@ namespace FlamingoProduction
         }
 
         // Setup your error handler.
-        private static Task ImError(FlamingoCore _, Exception e)
+        private static Task ImError(IFlamingoCore _, Exception e)
         {
             Console.WriteLine(e);
             return Task.CompletedTask;
