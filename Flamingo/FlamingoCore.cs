@@ -765,7 +765,7 @@ namespace Flamingo
         /// <inheritdoc/>
         public async Task Fly(
             bool clearQueue = false,
-            Func<FlamingoCore, Exception, Task> errorHandler = null)
+            Func<IFlamingoCore, Exception, Task> errorHandler = null)
         {
             int messageOffset = 0;
             Update[] emptyUpdates = Array.Empty<Update>();
