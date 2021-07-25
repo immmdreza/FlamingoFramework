@@ -9,7 +9,6 @@ using Flamingo.Filters.Async;
 using Flamingo.Fishes;
 using Flamingo.Fishes.Advanced;
 using Flamingo.Fishes.Advanced.Attributes;
-using Flamingo.Fishes.Advanced.CarrierFishes;
 using Flamingo.Fishes.Awaitables;
 using Flamingo.Fishes.Awaitables.FillFormHelper;
 using Flamingo.Fishes.InComingFishes.SimpleInComings;
@@ -387,7 +386,7 @@ namespace Flamingo
             return toAdd;
         }
 
-        private List<UpdateType> _allowedUpdates;
+        private readonly List<UpdateType> _allowedUpdates;
 
         /// <inheritdoc/>
         public void AddAllowedUpdateType(UpdateType updateType)
@@ -398,19 +397,14 @@ namespace Flamingo
         /// <inheritdoc/>
         public async Task<bool> ProcessAwaitables<T>(ICondiment<T> condiment)
         {
-            var manager = _inComingAwaitableManager.GetInComingList<T>();
-
-            if (manager.Any())
+            await foreach (var inComing in PassedAwaitableHandlersAsync(condiment))
             {
-                foreach (var inComing in manager)
+                if (await inComing.ShouldEatAsync(condiment))
                 {
-                    if (await inComing.InComingFish.ShouldEatAsync(condiment))
-                    {
-                        var fisher = inComing.InComingFish as IFisherAwaits<T>;
-                        fisher.SetCdmt(condiment);
-                        (inComing.InComingFish as IFisherAwaits<T>).AwaitFor();
-                        return true;
-                    }
+                    var fisher = inComing as IFisherAwaits<T>;
+                    fisher.SetCdmt(condiment);
+                    (inComing as IFisherAwaits<T>).AwaitFor();
+                    return true;
                 }
             }
 
@@ -442,16 +436,15 @@ namespace Flamingo
         {
             if (await ProcessAwaitables(condiment)) return;
 
-            foreach (var inComing in _inComingMessages
-                .Where(x => !(x.InComingFish is IFisherAwaits<T>)))
+            await foreach (var inComing in PassedHandlersAsync(condiment, _inComingMessages))
             {
-                if (await inComing.InComingFish.ShouldEatAsync(condiment))
+                if (await inComing.ShouldEatAsync(condiment))
                 {
-                    CheckAdvInComings(inComing.InComingFish);
+                    CheckAdvInComings(inComing);
 
                     try
                     {
-                        if (!await inComing.InComingFish.GetEaten(condiment))
+                        if (!await inComing.GetEaten(condiment))
                         {
                             break;
                         }
@@ -465,7 +458,7 @@ namespace Flamingo
                     }
                     finally
                     {
-                        if(inComing.InComingFish is IDisposable disposable)
+                        if(inComing is IDisposable disposable)
                         {
                             disposable.Dispose();
                         }
@@ -510,9 +503,10 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment)
+        public async IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(
+            ICondiment<T> condiment, SortedSet<GroupedInComing<T>> inComingMessages = null)
         {
-            var _inComingMessages = _inComingManager.GetInComingList<T>();
+            var _inComingMessages = inComingMessages?? _inComingManager.GetInComingList<T>();
 
             if (_inComingMessages == null) yield break;
 
@@ -523,6 +517,43 @@ namespace Flamingo
                 {
                     yield return inComing.InComingFish;
                 }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async IAsyncEnumerable<IFish<T>> PassedAwaitableHandlersAsync<T>(ICondiment<T> condiment)
+        {
+            var manager = _inComingAwaitableManager.GetInComingList<T>();
+
+            if (manager.Any())
+            {
+                foreach (var inComing in manager)
+                {
+                    if (await inComing.InComingFish.ShouldEatAsync(condiment))
+                    {
+                        yield return inComing.InComingFish;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a list of all pending handlers for an specified update condiment
+        /// </summary>
+        /// <returns>
+        /// This method return an <see cref="IAsyncEnumerable{T}"/>
+        /// Where <c>T</c> is <see cref="IFish{T}"/> 
+        /// </returns>
+        public async IAsyncEnumerable<IFish<T>> AllPendingHandlersAsync<T>(ICondiment<T> condiment)
+        {
+            await foreach (var awaitable in PassedAwaitableHandlersAsync(condiment))
+            {
+                yield return awaitable;
+            }
+
+            await foreach (var normal in PassedHandlersAsync(condiment))
+            {
+                yield return normal;
             }
         }
 

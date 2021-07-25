@@ -178,7 +178,21 @@ namespace Flamingo
         /// <typeparam name="T"></typeparam>
         /// <param name="condiment"></param>
         /// <returns>Get an async Enumerable of InComing handlers that passed filters</returns>
-        IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment);
+        IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment, SortedSet<GroupedInComing<T>> inComingMessages = null);
+
+        /// <summary>
+        /// Wanna go even deeper? This is used when you have your own update receiver
+        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
+        /// of your choice that is customized the way you like for every single update.
+        /// </summary>
+        /// <remarks>
+        /// This is useful when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also control their life cycle.
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condiment"></param>
+        /// <returns>Get an async Enumerable of InComing await-able handlers that passed filters</returns>
+        IAsyncEnumerable<IFish<T>> PassedAwaitableHandlersAsync<T>(ICondiment<T> condiment);
 
         /// <summary>
         /// Processes await-able incomings here 
