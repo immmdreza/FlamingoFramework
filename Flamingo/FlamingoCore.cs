@@ -389,9 +389,13 @@ namespace Flamingo
         private readonly List<UpdateType> _allowedUpdates;
 
         /// <inheritdoc/>
-        public void AddAllowedUpdateType(UpdateType updateType)
+        public void AddAllowedUpdateType(params UpdateType[] updateTypes)
         {
-            _allowedUpdates.Add(updateType);
+            foreach (var updateType in updateTypes)
+            {
+                if (!_allowedUpdates.Contains(updateType))
+                    _allowedUpdates.Add(updateType);
+            }
         }
 
         /// <inheritdoc/>
@@ -537,13 +541,7 @@ namespace Flamingo
             }
         }
 
-        /// <summary>
-        /// Get a list of all pending handlers for an specified update condiment
-        /// </summary>
-        /// <returns>
-        /// This method return an <see cref="IAsyncEnumerable{T}"/>
-        /// Where <c>T</c> is <see cref="IFish{T}"/> 
-        /// </returns>
+        /// <inheritdoc/>
         public async IAsyncEnumerable<IFish<T>> AllPendingHandlersAsync<T>(ICondiment<T> condiment)
         {
             await foreach (var awaitable in PassedAwaitableHandlersAsync(condiment))
