@@ -48,8 +48,7 @@ namespace Flamingo
         /// </summary>
         /// <remarks>Flamingo will setup allowed updates based on your handlers automatically
         /// and you may not need this</remarks>
-        /// <param name="updateType"></param>
-        void AddAllowedUpdateType(UpdateType updateType);
+        public void AddAllowedUpdateType(params UpdateType[] updateTypes);
 
         /// <summary>
         /// This is used when splitting callback query data
@@ -178,7 +177,30 @@ namespace Flamingo
         /// <typeparam name="T"></typeparam>
         /// <param name="condiment"></param>
         /// <returns>Get an async Enumerable of InComing handlers that passed filters</returns>
-        IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment);
+        IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(ICondiment<T> condiment, SortedSet<GroupedInComing<T>> inComingMessages = null);
+
+        /// <summary>
+        /// Wanna go even deeper? This is used when you have your own update receiver
+        /// And you have also an update redirector! Using this you can pass an <see cref="ICondiment{T}"/>
+        /// of your choice that is customized the way you like for every single update.
+        /// </summary>
+        /// <remarks>
+        /// This is useful when you need to pass your own properties to the update Condiment
+        /// and use them when handling update. and you can also control their life cycle.
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condiment"></param>
+        /// <returns>Get an async Enumerable of InComing await-able handlers that passed filters</returns>
+        IAsyncEnumerable<IFish<T>> PassedAwaitableHandlersAsync<T>(ICondiment<T> condiment);
+
+        /// <summary>
+        /// Get a list of all pending handlers for an specified update condiment
+        /// </summary>
+        /// <returns>
+        /// This method return an <see cref="IAsyncEnumerable{T}"/>
+        /// Where <c>T</c> is <see cref="IFish{T}"/> 
+        /// </returns>
+        IAsyncEnumerable<IFish<T>> AllPendingHandlersAsync<T>(ICondiment<T> condiment);
 
         /// <summary>
         /// Processes await-able incomings here 

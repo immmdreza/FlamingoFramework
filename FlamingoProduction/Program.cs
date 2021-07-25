@@ -105,6 +105,47 @@ namespace FlamingoProduction
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// This incoming message handlers should overlap with two others
+        /// </summary>
+        [InComingMessage(Group = 2)]
+        [CommandFilter("series")]
+        public static async Task<bool> Series2(ICondiment<Message> cdmt)
+        {
+            await cdmt.ReplyText("Series 2 after 5000 ms, i won't let next!!!");
+
+            // This means stop here! don't go for other pending handlers for this update
+            // Series3 can't be called
+            return false;
+        }
+
+        /// <summary>
+        /// Among pending handlers, handler with lower group rank will handle sooner
+        /// </summary>
+        [InComingMessage(Group = 1)]
+        [CommandFilter("series")]
+        public static async Task<bool> Series1(ICondiment<Message> cdmt)
+        {
+            int allPending = 0;
+            await foreach (var pending in cdmt.Flamingo.AllPendingHandlersAsync(cdmt))
+            {
+                allPending++;
+            }
+
+            await cdmt.ReplyText("All pending handlers for this cdmt are " + allPending.ToString());
+            await Task.Delay(5000);
+            return true;
+        }
+
+        [InComingMessage(Group = 3)]
+        [CommandFilter("series")]
+        public static async Task<bool> Series3(ICondiment<Message> cdmt)
+        {
+            await cdmt.ReplyText("This should not be called ever");
+            return true;
+        }
+
+
         [InComingMessage]
         [CommandFilter("start", ArgumentsMode.NoArgs)]
         public static async Task<bool> NormalStart(ICondiment<Message> cdmt)
