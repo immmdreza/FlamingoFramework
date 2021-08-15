@@ -4,7 +4,7 @@
     /// Base interface to validate a data in flamingo forms
     /// </summary>
     /// <typeparam name="T">Data type</typeparam>
-    public interface IFamingoFormDataCheck<T>
+    public interface IFlamingoFormDataCheck<T>
     {
         /// <summary>
         /// A function to check if data is valid
