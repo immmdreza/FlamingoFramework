@@ -6,7 +6,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper.FromDataChecks
     /// Check string length
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-    public class StringLengthAttribute : Attribute, IFamingoFormDataCheck<string>
+    public class StringLengthAttribute : Attribute, IFlamingoFormDataCheck<string>
     {
         /// <inheritdoc/>
         public string FailureMessage { get; set; }
@@ -27,7 +27,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper.FromDataChecks
         /// <inheritdoc/>
         public bool Check(string input)
         {
-            if(!string.IsNullOrEmpty(input))
+            if (!string.IsNullOrEmpty(input))
             {
                 return input.Length >= _minLength && input.Length <= _length;
             }

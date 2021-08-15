@@ -309,6 +309,7 @@ namespace Flamingo
         /// <summary>
         /// Create a form filler class
         /// </summary>
-        public FillFormRequest<T> CreateFormFiller<T>();
+        public FillFormRequest<T> CreateFormFiller<T>(
+            Func<FillFormRequest<T>, FlamingoFormStatus, IFlamingoFormData, bool> statusChanged = null);
     }
 }

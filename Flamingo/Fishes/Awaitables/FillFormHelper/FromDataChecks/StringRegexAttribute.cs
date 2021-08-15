@@ -6,7 +6,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper.FromDataChecks
     /// <summary>
     /// Checks an string input based on regex pattern
     /// </summary>
-    public class StringRegexAttribute : Attribute, IFamingoFormDataCheck<string>
+    public class StringRegexAttribute : Attribute, IFlamingoFormDataCheck<string>
     {
         /// <inheritdoc/>
         public string FailureMessage { get; set; }
