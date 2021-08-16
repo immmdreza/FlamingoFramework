@@ -111,6 +111,34 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             _formObjs = new List<object>();
         }
 
+        /// <summary>
+        /// Created instance of form
+        /// </summary>
+        public T Instance
+        {
+            get
+            {
+                if (!_asked)
+                    return default;
+
+                if (_hasConstructor)
+                {
+                    var cnstr = typeof(T).GetConstructor(_dataTypes.ToArray());
+
+                    return (T)cnstr.Invoke(_formObjs.ToArray());
+                }
+
+                var _instance = (T)Activator.CreateInstance(typeof(T));
+
+                for (int i = 0; i < _propertyInfos.Count(); i++)
+                {
+                    _propertyInfos.ElementAt(i).SetValue(_instance, _formObjs[i]);
+                }
+
+                return _instance;
+            }
+        }
+
         private U GetAttribute<U>(IEnumerable<Attribute> attributes) where U : Attribute
         {
             var attr = (U)attributes
@@ -126,7 +154,10 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                 var param = _parameterInfos.ElementAt(index);
                 var data = GetAttribute<FlamingoFormDataAttribute>(
                     param.GetCustomAttributes());
+
                 data.Name ??= param.Name;
+                data.AskText ??= $"Please send value for {data.Name}";
+                data.InvalidTypeText ??= $"Invalid input type for {data.Name}";
 
                 return data;
             }
@@ -135,7 +166,10 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                 var prop = _propertyInfos.ElementAt(index);
                 var data = GetAttribute<FlamingoFormPropertyAttribute>(
                     prop.GetCustomAttributes());
+
                 data.Name ??= prop.Name;
+                data.AskText ??= $"Please send value for {data.Name}";
+                data.InvalidTypeText ??= $"Invalid input type for {data.Name}";
 
                 return data;
             }
@@ -209,49 +243,6 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
             return null;
         }
 
-
-        /// <summary>
-        /// Created instance of form
-        /// </summary>
-        public T Instance
-        {
-            get
-            {
-                if (!_asked)
-                    return default;
-
-                if (_hasConstructor)
-                {
-                    var cnstr = typeof(T).GetConstructor(_dataTypes.ToArray());
-
-                    return (T)cnstr.Invoke(_formObjs.ToArray());
-                }
-
-                var _instance = (T)Activator.CreateInstance(typeof(T));
-
-                for (int i = 0; i < _propertyInfos.Count(); i++)
-                {
-                    _propertyInfos.ElementAt(i).SetValue(_instance, _formObjs[i]);
-                }
-
-                return _instance;
-            }
-        }
-
-        private string PropertyName(int index)
-        {
-            if (_hasConstructor)
-            {
-                return _parameterInfos.ElementAt(index).Name;
-
-            }
-            else
-            {
-                return _propertyInfos.ElementAt(index).Name;
-            }
-        }
-
-
         /// <summary>
         /// Start asking for form data
         /// </summary>
@@ -294,8 +285,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
 
                 await _flamingoCore.BotClient.SendTextMessageAsync(
                     userid,
-                    formDataInfo.AskText ??
-                        $"Please send value for {formDataInfo.Name}",
+                    formDataInfo.AskText,
                     replyMarkup: markup);
 
                 int tries = 0;
@@ -376,8 +366,7 @@ namespace Flamingo.Fishes.Awaitables.FillFormHelper
                                 formDataInfo))
                             {
                                 await _flamingoCore.BotClient.SendTextMessageAsync(
-                                    userid, formDataInfo.InvalidTypeText ??
-                                        $"Invalid input type for {formDataInfo.Name}");
+                                    userid, formDataInfo.InvalidTypeText);
                             }
                         }
                     }
