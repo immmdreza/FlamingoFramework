@@ -31,7 +31,7 @@ namespace FlamingoProduction
                 .AutoAddInComings(true)
 
                 .Config(ConfigFlaminog)
-                .InitBot("1820608649:AAHL3tH8YWDqVc8C7cc2tzEbPsGoRhNMSA8", true)
+                .InitBot("1820608649:AAHSYN4KJW9KbulUEgsu-dnK4K7Jyc0ngDY", true)
                 // - Time to Fly!
                 //      Call this method to start listening for updates!
                 .Fly(errorHandler: ImError);

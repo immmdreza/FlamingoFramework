@@ -453,16 +453,16 @@ namespace Flamingo
                             break;
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
-                        if(errorHandler != null)
+                        if (errorHandler != null)
                         {
                             await errorHandler(this, e);
                         }
                     }
                     finally
                     {
-                        if(inComing is IDisposable disposable)
+                        if (inComing is IDisposable disposable)
                         {
                             disposable.Dispose();
                         }
@@ -510,7 +510,7 @@ namespace Flamingo
         public async IAsyncEnumerable<IFish<T>> PassedHandlersAsync<T>(
             ICondiment<T> condiment, SortedSet<GroupedInComing<T>> inComingMessages = null)
         {
-            var _inComingMessages = inComingMessages?? _inComingManager.GetInComingList<T>();
+            var _inComingMessages = inComingMessages ?? _inComingManager.GetInComingList<T>();
 
             if (_inComingMessages == null) yield break;
 
@@ -1076,19 +1076,19 @@ namespace Flamingo
                       x.IsGenericType &&
                       x.GetGenericTypeDefinition() == typeof(IAdvFish<>));
 
-                    if(advFish != null)
+                    if (advFish != null)
                     {
                         var gArgs = advFish.GetGenericArguments();
-                        if(gArgs[0] == ns.Key)
+                        if (gArgs[0] == ns.Key)
                         {
                             var c2 = c1.MakeGenericType(ns.Key, handler);
 
-                            var carrier = Activator.CreateInstance(c2, 
+                            var carrier = Activator.CreateInstance(c2,
                                 args: new object[] { null, null });
 
                             AddFishObj(carrier, ns.Key, group, edited, channelPost, mine);
 
-                            if(notify)
+                            if (notify)
                                 Console.WriteLine($"Added advanced incoming: '{handler.Name}' from '{ns.Value}'\n" +
                                 $"\tGroup: {group}, IsEdited: {edited}, IsChannelPost: {channelPost}, IsMine: {mine}");
                             continue;
@@ -1120,9 +1120,10 @@ namespace Flamingo
         }
 
         /// <inheritdoc/>
-        public FillFormRequest<T> CreateFormFiller<T>()
+        public FillFormRequest<T> CreateFormFiller<T>(
+            Func<FillFormRequest<T>, FlamingoFormStatus, IFlamingoFormData, bool> statusChanged = null)
         {
-            return new FillFormRequest<T>(this);
+            return new FillFormRequest<T>(this, statusChanged);
         }
 
         #endregion
