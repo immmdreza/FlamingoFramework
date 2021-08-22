@@ -26,6 +26,9 @@ Below there are some sources you can use
 ### Features ⭐️
 Read more about some [features of Flamingo](https://github.com/immmdreza/FlamingoFramework/wiki/Features-%E2%AD%90%EF%B8%8F)
 
+### Contribute 
+If you're interested to contribute ( as i hope so ) you can take look at [Contribute](https://github.com/immmdreza/FlamingoFramework/wiki/Contribute)
+
 **Please read [WIKI](https://github.com/immmdreza/FlamingoFramework/wiki)**
 
 <details>
